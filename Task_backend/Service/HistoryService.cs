@@ -20,8 +20,8 @@ namespace Task_backend.Service
         {
             try
             {
-
-                var historyList = await _dbContext.History.Find(x => x.History_of == id).ToListAsync();
+                var sortdefination = Builders<HistoryModel>.Sort.Descending("createdAt");
+                var historyList = await _dbContext.History.Find(x => x.History_of == id).Sort(sortdefination).ToListAsync();
                 var userIds = historyList.Select(l => l.Performed_By_Id).Distinct().ToList();
 
                 var filter = Builders<UsersModel>.Filter.In(u => u.Id, userIds);

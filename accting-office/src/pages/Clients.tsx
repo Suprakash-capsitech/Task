@@ -262,6 +262,25 @@ const Clients = () => {
                   setColumns(newColumns);
                 },
               }}
+              onRenderRow={(props, defaultRender) => {
+                if (!props || !defaultRender) return null;
+
+                const isEven = props.itemIndex % 2 === 0;
+
+                return defaultRender({
+                  ...props,
+                  styles: {
+                    root: {
+                      backgroundColor: isEven ? "#f9f9f9" : "white", // stripe effect
+                      selectors: {
+                        ":hover": {
+                          backgroundColor: "#eaeaea", // optional hover
+                        },
+                      },
+                    },
+                  },
+                });
+              }}
             />
             {clientlist.length === 0 ? (
               <></>

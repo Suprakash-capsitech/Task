@@ -256,6 +256,7 @@ const Leads = () => {
         isLightDismiss={true}
         closeButtonAriaLabel="Close"
         isFooterAtBottom={true}
+        
       >
         <CreateLeadForm OpenForm={setisOpen} RefreshList={refresh} />
       </Panel>

@@ -1,4 +1,4 @@
-import * as React from "react";
+
 import {
   initializeIcons,
   Nav,
@@ -8,13 +8,14 @@ import {
   Stack,
   Label,
 } from "@fluentui/react";
+import { useState } from "react";
 import { useLocation } from "react-router-dom";
 
 initializeIcons();
 
 const SideBar: React.FC = () => {
-  const [collapsed, setCollapsed] = React.useState(true);
-  const [expandedKeys, setExpandedKeys] = React.useState<string[]>([]);
+  const [collapsed, setCollapsed] = useState<boolean>(false);
+  const [expandedKeys, setExpandedKeys] = useState<string[]>([]);
   const location = useLocation();
   const path = location.pathname.split("/")[1];
 

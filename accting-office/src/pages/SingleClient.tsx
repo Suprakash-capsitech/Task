@@ -105,6 +105,13 @@ const SingleClient = () => {
             >
               {history && <HistoryCard data={history} />}
             </PivotItem>
+            <PivotItem
+              headerText="Contact"
+              itemIcon="Contact"
+              itemKey="Contact"
+            >
+              {history && <HistoryCard data={history} />}
+            </PivotItem>
           </Pivot>
         </Stack>
       )}
