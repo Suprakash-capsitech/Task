@@ -1,6 +1,7 @@
 ﻿using FluentValidation.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 using System.Security.Claims;
 using Task_backend.Dto;
 using Task_backend.Interface;
@@ -46,6 +47,12 @@ namespace Task_backend.Controllers
                         var newClient = await _clientService.CreateClient(Req, userId);
                         CreatedHistoryDto historyRequest = new() { History_of = newClient.Id, Performed_By_Id = userId, Task_Performed = "Created", Description = $"Created Client by {newClient.Created_By.Name}" };
                         await _historyService.CreatedHistory(historyRequest);
+                        if (Req.Contact_Ids?.Length != 0)
+                        {
+
+                            CreatedHistoryDto LinkRequest = new() { History_of = newClient.Id, Performed_By_Id = userId, Task_Performed = "Linked", Description = $"Contacts Linked by {newClient.Created_By.Name}" };
+                            await _historyService.CreatedHistory(LinkRequest);
+                        }
                         return Ok(newClient);
                     }
                     else
@@ -69,7 +76,7 @@ namespace Task_backend.Controllers
 
 
         [HttpGet("clients")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -101,7 +108,7 @@ namespace Task_backend.Controllers
 
 
         [HttpGet("client/{Id}")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -132,7 +139,7 @@ namespace Task_backend.Controllers
 
 
         [HttpDelete("deleteclient/{Id}")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -163,7 +170,7 @@ namespace Task_backend.Controllers
 
 
         [HttpPut("updateclient/{Id}")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -205,6 +212,35 @@ namespace Task_backend.Controllers
                 return BadRequest(validatedResult.Errors.FirstOrDefault()?.ErrorMessage);
             }
 
+        }
+        [HttpPut("unlinklead/{Id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> Unlinklead(string Id, string lead_id)
+        {
+            try
+            {
+
+
+
+                var client = await _clientService.UnLinkLead(Id, lead_id);
+
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!String.IsNullOrEmpty(userId))
+                {
+
+                    CreatedHistoryDto LinkRequest = new() { History_of = client.Id, Performed_By_Id = userId, Task_Performed = "Unlinked", Description = $"Contact was Unlinked " };
+                    await _historyService.CreatedHistory(LinkRequest);
+                }
+                return Ok(client);
+            }
+            catch (Exception)
+            {
+
+                return StatusCode(500);
+            }
         }
     }
 }

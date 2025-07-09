@@ -5,10 +5,12 @@ import type { FC } from "react";
 interface HistoryCardProps {
   data: HistoryInterface[];
 }
-const iconNames: Record<"Created" | "Updated" | "Deleted", string> = {
+const iconNames: Record<"Created" | "Updated" | "Deleted" | "Linked"|"Unlinked", string> = {
   Created: "add",
   Updated: "edit",
   Deleted: "delete",
+  Linked: "link",
+  Unlinked: "Removelink",
 };
 const HistoryCard: FC<HistoryCardProps> = ({ data }) => {
   return (

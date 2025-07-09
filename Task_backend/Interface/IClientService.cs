@@ -9,6 +9,7 @@ namespace Task_backend.Interface
         Task<IEnumerable<ClientsModel>> GetAllClients(string userId, string role);
         Task<ClientsModel> GetClientById( string Id);
         Task<ClientsModel> DeleteClient( string Id);
+        Task<ClientsModel> UnLinkLead(string Id, string lead_id);
         Task<ClientsModel> UpdateClient( string Id , CreateClientRequestDto Req);
     }
 }

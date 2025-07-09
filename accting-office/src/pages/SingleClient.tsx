@@ -14,6 +14,7 @@ import { useEffect, useState } from "react";
 import type { ClientInterface, HistoryInterface } from "../types";
 import HistoryCard from "../component/HistoryCard";
 import ProfileCard from "../component/ProfileCard";
+import ContactPivot from "../component/ContactPivot";
 const SingleClient = () => {
   const [client, setclient] = useState<ClientInterface>();
 
@@ -110,7 +111,7 @@ const SingleClient = () => {
               itemIcon="Contact"
               itemKey="Contact"
             >
-              {history && <HistoryCard data={history} />}
+              {client && <ContactPivot data={client.contact_Details} />}
             </PivotItem>
           </Pivot>
         </Stack>

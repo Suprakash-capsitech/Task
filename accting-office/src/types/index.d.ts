@@ -15,10 +15,19 @@ export interface ClientInterface {
   email: string;
   type: string;
   status: string;
-  address: string;
+  address: {
+     street: string,
+    area: string,
+    city: string,
+    county: string,
+    pincode: string,
+    country: string
+  };
   created_By_id: string;
   createdAt: string;
   created_By: UserInterface;
+  contact_Ids: [],
+  contact_Details: LeadsInterface[];
 }
 
 export interface UserInterface {

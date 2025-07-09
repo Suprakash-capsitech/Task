@@ -86,7 +86,7 @@ const Clients = () => {
         isSortedDescending: false,
         onColumnClick: onColumnClick,
         onRender: (item: ClientInterface) => (
-          <span
+          <Text
             style={{
               color: "#0078d4",
               cursor: "pointer",
@@ -95,7 +95,7 @@ const Clients = () => {
             onClick={() => navigate(`/client/${item.id}`)}
           >
             {item.name}
-          </span>
+          </Text>
         ),
       },
       {
@@ -121,6 +121,26 @@ const Clients = () => {
         fieldName: "address",
         minWidth: 120,
         isResizable: true,
+        onRender: (item: ClientInterface) => item.address.area,
+      },
+      {
+        key: "contact_person",
+        name: "Contact Person",
+        // fieldName: "created_Details",
+        minWidth: 120,
+        isResizable: true,
+        onRender: (item: ClientInterface) => (
+          <Text
+            onClick={() => navigate(`/lead/${item?.contact_Details[0]?.id}`)}
+            style={{
+              color: "#0078d4",
+              cursor: "pointer",
+              textDecoration: "underline",
+            }}
+          >
+            {item?.contact_Details ?  item?.contact_Details[0]?.name: ""}
+          </Text>
+        ),
       },
       {
         key: "created_By",

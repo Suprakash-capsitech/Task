@@ -21,7 +21,12 @@ const Custominput: React.FC<CustomInputProps> = ({
       placeholder={placeholder}
       className={`${classname}`}
       styles={{
-        fieldGroup: { padding:5, borderRadius: 5 , outline: "none" , border:"1px solid rgba(0,0,0,.4)" },
+        fieldGroup: {
+          padding: 5,
+          borderRadius: 5,
+          outline: "none",
+          border: "1px solid rgba(0,0,0,.2)",
+        },
       }}
       value={value}
       onChange={onChange}

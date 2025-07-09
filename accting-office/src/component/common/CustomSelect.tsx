@@ -19,7 +19,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
       options={options}
       styles={{
         title:{
-          border: "1px solid rgba(0,0,0,.4)",
+          border: "1px solid rgba(0,0,0,.2)",
           borderRadius: 6
         },
         callout:{

@@ -58,7 +58,7 @@ const ProfileCard: FC<proilfeprops> = ({ data }) => {
           {"address" in data && (
             <Stack horizontal horizontalAlign="start" style={{width:"30%"}}>
               <Text>
-                <Label>Address:</Label> {data.address}
+                <Label>Address:</Label> {data.address.country}
               </Text>
             </Stack>
           )}

@@ -1,5 +1,6 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using Task_backend.Models;
 
 namespace Task_backend.Dto
 {
@@ -9,7 +10,9 @@ namespace Task_backend.Dto
         public required string Email { get; set; }
         public required string Type { get; set; }
         public required string Status { get; set; } = "active";
-        public required string Address { get; set; }
+
+        public required AddressType Address { get; set; }
+        public required string[] Contact_Ids { get; set; } 
 
     }
    
