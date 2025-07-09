@@ -48,6 +48,7 @@ export interface ButtonProps {
   label: string;
 }
 export interface CustomFormprops {
-  OpenForm: (isOpen: boolean) => void;
+  isFormOpen: boolean,
+  OpenForm: (isOpen: any) => void;
   RefreshList: () => void;
 }

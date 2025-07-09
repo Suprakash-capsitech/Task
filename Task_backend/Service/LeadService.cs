@@ -43,6 +43,76 @@ namespace Task_backend.Service
             }
         }
 
+        public async Task<IEnumerable<LeadsModel>> GetAll(string role, string userId)
+        {
+            try
+            {
+                if (role == "admin")
+                {
+
+                    var leadslist = await _dbContext.Leads.Find(x => true).ToListAsync();
+
+                    var userIds = leadslist.Select(l => l.Created_By_Id).Distinct().ToList();
+
+                    var filter = Builders<UsersModel>.Filter.In(u => u.Id, userIds);
+                    var users = await _dbContext.Users.Find(filter)
+                        .Project(u => new UserMaskedResponse
+                        {
+                            Id = u.Id,
+                            Name = u.Name
+                        }).ToListAsync();
+
+                    var userDict = users.ToDictionary(u => u.Id, u => u);
+
+                    foreach (var lead in leadslist)
+                    {
+                        if (userDict.TryGetValue(lead.Created_By_Id, out var maskedUser))
+                        {
+                            lead.Created_By = maskedUser;
+                        }
+                    }
+
+
+
+                    return (leadslist);
+                }
+                else
+                {
+                    var leadslist = await _dbContext.Leads.Find(x => x.Created_By_Id == userId).ToListAsync();
+                    var userIds = leadslist.Select(l => l.Created_By_Id).Distinct().ToList();
+
+                    var filter = Builders<UsersModel>.Filter.In(u => u.Id, userIds);
+                    var users = await _dbContext.Users.Find(filter)
+                        .Project(u => new UserMaskedResponse
+                        {
+                            Id = u.Id,
+                            Name = u.Name
+                        }).ToListAsync();
+
+                    var userDict = users.ToDictionary(u => u.Id, u => u);
+
+                    foreach (var lead in leadslist)
+                    {
+                        if (userDict.TryGetValue(lead.Created_By_Id, out var maskedUser))
+                        {
+                            lead.Created_By = maskedUser;
+                        }
+                    }
+
+
+
+                    return (leadslist);
+                }
+
+
+            }
+            catch (Exception)
+            {
+
+                throw new Exception("Database Error");
+            }
+        }
+
         //public async Task<IEnumerable<LeadsModel>> GetContacts(string type, string role, string userId)
         //{
         //    try
@@ -155,7 +225,7 @@ namespace Task_backend.Service
                         }
                     }
 
-                    
+
 
                     return (leadslist);
                 }

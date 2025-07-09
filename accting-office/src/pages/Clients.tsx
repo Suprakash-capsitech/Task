@@ -5,8 +5,6 @@ import {
   DetailsList,
   DetailsListLayoutMode,
   IconButton,
-  Panel,
-  PanelType,
   SelectionMode,
   Spinner,
   Stack,
@@ -24,7 +22,6 @@ const Clients = () => {
   const [isOpen, setisOpen] = useState<boolean>(false);
   const [isloading, setisloading] = useState<boolean>(false);
   const [clientlist, setclientlist] = useState<ClientInterface[]>([]);
-
   const [openModal, setopenModal] = useState<ClientInterface>();
   const [currentPage, setCurrentPage] = useState(0);
   const [columns, setColumns] = useState<IColumn[]>([]);
@@ -224,15 +221,13 @@ const Clients = () => {
     <Stack>
       <CustomBreadCrum items={BreadCrumitem} />
       <CustomCommandBar OpenForm={setisOpen} RefreshList={refresh} />
-      <Panel
-        headerText="Add Client"
-        isOpen={isOpen}
-        onDismiss={() => setisOpen(false)}
-        closeButtonAriaLabel="Close"
-        type={PanelType.medium}
-      >
-        <CreateClientForm OpenForm={setisOpen} RefreshList={refresh} />
-      </Panel>
+
+      <CreateClientForm
+        isFormOpen={isOpen}
+        OpenForm={setisOpen}
+        RefreshList={refresh}
+      />
+
       <Stack
         tokens={{ childrenGap: 5, padding: 5 }}
         style={{
@@ -335,23 +330,15 @@ const Clients = () => {
           </Stack>
         )}
       </Stack>
-      <Panel
-        headerText="Update Client"
-        isOpen={!!openModal}
-        onDismiss={() => setopenModal(undefined)}
-        type={PanelType.medium}
-        isLightDismiss={true}
-        closeButtonAriaLabel="Close"
-        isFooterAtBottom={true}
-      >
-        {openModal && (
-          <ClientUpdateForm
-            value={openModal}
-            OpenForm={setopenModal}
-            RefreshList={refresh}
-          />
-        )}
-      </Panel>
+
+      {openModal && (
+        <ClientUpdateForm
+          isFormOpen={!!openModal}
+          value={openModal}
+          OpenForm={setopenModal}
+          RefreshList={refresh}
+        />
+      )}
     </Stack>
   );
 };

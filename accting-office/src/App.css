@@ -21,11 +21,10 @@
 }
 *{
     scroll-behavior: smooth;
-    scrollbar-color: red;
+    
     
 }
 .error{
-    color: red;
-    font-weight: bold;
+    color: rgba(255, 0, 0, 0.63);
     padding-left: 0.6rem;
 }

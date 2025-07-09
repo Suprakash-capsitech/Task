@@ -6,20 +6,32 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   label,
   selectedKey,
   onChange,
-  //   onBlur,
+  // onBlur,
   options,
-  styles,
 }) => {
   return (
     <Dropdown
-      label={label.charAt(0).toUpperCase() + label.slice(1)}
+      label={label ? label.charAt(0).toUpperCase() + label.slice(1) : ""}
       selectedKey={selectedKey}
       onChange={onChange}
-      //   onBlur={onBlur}
-      className="inputbox"
+      // onBlur={onBlur}
       placeholder="Select an option"
       options={options}
-      styles={styles}
+      styles={{
+        title:{
+          border: "1px solid rgba(0,0,0,.4)",
+          borderRadius: 6
+        },
+        callout:{
+          borderRadius: 5,
+          },
+        dropdown: {
+          border:"none",
+          outline: "none",
+        },
+
+        
+      }}
     />
   );
 };

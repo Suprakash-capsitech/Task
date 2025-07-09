@@ -26,8 +26,8 @@ namespace Task_backend.Models
 
         [BsonIgnore]
         public UserMaskedResponse? Created_By { get; set; }
-        //[BsonElement("contact"), BsonRepresentation(BsonType.ObjectId)]
-        //public required string Contact { get; set; }
+        [BsonElement("contact_ids"), BsonRepresentation(BsonType.ObjectId)]
+        public  string[]? Contact_Ids { get; set; }
 
     }
     public enum ClientTypeEnum

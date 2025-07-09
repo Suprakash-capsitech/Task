@@ -1,11 +1,16 @@
 import { useFormik } from "formik";
 import { object, string } from "yup";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
-import { Stack } from "@fluentui/react";
+import {
+  DefaultButton,
+  Panel,
+  PanelType,
+  PrimaryButton,
+  Stack,
+  Text,
+} from "@fluentui/react";
 import Custominput from "./common/Custominput";
-import Buttoninput from "./common/Buttoninput";
 import CustomSelect from "./common/CustomSelect";
-import { IoCreate } from "react-icons/io5";
 import type { CustomFormprops } from "../types/props";
 import type { ClientInterface } from "../types";
 const ClientSchema = object({
@@ -35,6 +40,7 @@ interface clientUpdateform extends CustomFormprops {
 }
 const ClientUpdateForm = ({
   value,
+  isFormOpen,
   OpenForm,
   RefreshList,
 }: clientUpdateform) => {
@@ -55,7 +61,7 @@ const ClientUpdateForm = ({
           values
         );
         if (response.data) {
-          OpenForm(false);
+          OpenForm(undefined);
           RefreshList();
         }
       } catch (error) {
@@ -63,90 +69,124 @@ const ClientUpdateForm = ({
       }
     },
   });
+  const {
+    values,
+    handleBlur,
+    handleChange,
+    handleSubmit,
+    touched,
+    errors,
+    dirty,
+    setFieldValue,
+    isValid,
+  } = formik;
   return (
-    <Stack>
-      <form className="d-flex flex-column gap-3" onSubmit={formik.handleSubmit}>
-        <CustomSelect
-          label="Type"
-          selectedKey={formik.values.type}
-          onChange={(_, option) => formik.setFieldValue("type", option?.key)}
-          onBlur={formik.handleBlur}
-          options={[
-            { key: "", text: "Please select  type of client", disabled: true },
-            { key: "limited", text: "Limited" },
-            { key: "individual", text: "Individual" },
-            { key: "Partnersihp", text: "Partnersihp" },
-            { key: "LLP", text: "LLP" },
-          ]}
-          styles={{
-            root: { border: "none" },
-          }}
-        />
-        <div className="error">{formik.touched.type && formik.errors.type}</div>
-        <Custominput
-          name="Business Name"
-          type="text"
-          classname=" border-0"
-          placeholder="Full Name"
-          value={formik.values.name}
-          onChange={formik.handleChange("name")}
-          onBlur={formik.handleBlur("name")}
-        />
-        <div className="error">{formik.touched.name && formik.errors.name}</div>
-        <Custominput
-          name="email"
-          type="email"
-          classname=" border-0"
-          placeholder="Email@Address"
-          value={formik.values.email}
-          onChange={formik.handleChange("email")}
-          onBlur={formik.handleBlur("email")}
-        />
-        <div className="error">
-          {formik.touched.email && formik.errors.email}
-        </div>
-        <Custominput
-          name="address"
-          type="text"
-          classname=" border-0"
-          placeholder="Address"
-          value={formik.values.address}
-          onChange={formik.handleChange("address")}
-          onBlur={formik.handleBlur("address")}
-        />
-        <div className="error">
-          {formik.touched.address && formik.errors.address}
-        </div>
-
-        <CustomSelect
-          label="Status"
-          selectedKey={formik.values.status}
-          onChange={(_, option) => formik.setFieldValue("status", option?.key)}
-          onBlur={formik.handleBlur}
-          options={[
-            {
-              key: "",
-              text: "Please select  status of client",
-              disabled: true,
-            },
-            { key: "active", text: "Active" },
-            { key: "inactive", text: "In-Active" },
-          ]}
-          styles={{
-            root: { border: "none" },
-          }}
-        />
-        <div className="error">
-          {formik.touched.status && formik.errors.status}
-        </div>
-        <Buttoninput
-          color="primary"
-          icon={<IoCreate />}
-          label="Save"
-          type="submit"
-        />
-      </form>
-    </Stack>
+    <Panel
+      headerText="Update Client"
+      isOpen={isFormOpen}
+      onDismiss={() => OpenForm(undefined)}
+      type={PanelType.medium}
+      isLightDismiss={true}
+      closeButtonAriaLabel="Close"
+      onRenderFooterContent={() => (
+        <Stack horizontal tokens={{ childrenGap: 12 }}>
+          <PrimaryButton
+            type="submit"
+            form="ClientUpdateForm"
+            disabled={!dirty || !isValid}
+          >
+            Save
+          </PrimaryButton>
+          <DefaultButton onClick={() => OpenForm(false)}>Cancel</DefaultButton>
+        </Stack>
+      )}
+      isFooterAtBottom={true}
+    >
+      <Stack>
+        <form id="ClientUpdateForm" onSubmit={handleSubmit}>
+          <Stack horizontal tokens={{childrenGap:5}} style={{ width: "100%" }}>
+            <Stack style={{ width: "30%" }}>
+              <CustomSelect
+                label="Type"
+                selectedKey={values.type}
+                onChange={(_, option) => setFieldValue("type", option?.key)}
+                onBlur={handleBlur}
+                options={[
+                  {
+                    key: "",
+                    text: "Select  type of client",
+                    disabled: true,
+                  },
+                  { key: "limited", text: "Limited" },
+                  { key: "individual", text: "Individual" },
+                  { key: "Partnersihp", text: "Partnersihp" },
+                  { key: "LLP", text: "LLP" },
+                ]}
+                styles={{
+                  root: { border: "none" },
+                }}
+              />
+              <Text className="error">{touched.type && errors.type}</Text>
+            </Stack>
+            <Stack style={{ width: "70%" }}>
+              <Custominput
+                name="name"
+                type="text"
+                classname=" border-0"
+                placeholder="Business Name"
+                value={values.name}
+                onChange={handleChange}
+                onBlur={handleBlur}
+              />
+              <Text className="error">{touched.name && errors.name}</Text>
+            </Stack>
+          </Stack>
+          <Custominput
+            name="email"
+            type="email"
+            classname=" border-0"
+            placeholder="Email@Address"
+            value={values.email}
+            onChange={handleChange}
+            onBlur={handleBlur}
+          />
+          <Text className="error">{touched.email && errors.email}</Text>
+          <Custominput
+            name="address"
+            type="text"
+            classname=" border-0"
+            placeholder="Address"
+            value={values.address}
+            onChange={handleChange("address")}
+            onBlur={handleBlur("address")}
+          />
+          <Text className="error">{touched.address && errors.address}</Text>
+          <CustomSelect
+            label="Status"
+            selectedKey={formik.values.status}
+            onChange={(_, option) =>
+              formik.setFieldValue("status", option?.key)
+            }
+            onBlur={formik.handleBlur}
+            options={[
+              {
+                key: "",
+                text: "Please select  status of client",
+                disabled: true,
+              },
+              { key: "active", text: "Active" },
+              { key: "inactive", text: "In-Active" },
+            ]}
+            styles={{
+              root: { border: "none" },
+            }}
+          />
+          <div className="error">
+            {formik.touched.status && formik.errors.status}
+          </div>
+        </form>
+      </Stack>
+    </Panel>
   );
 };
 export default ClientUpdateForm;

@@ -3,8 +3,6 @@ import {
   DetailsList,
   DetailsListLayoutMode,
   IconButton,
-  Panel,
-  PanelType,
   Pivot,
   PivotItem,
   SelectionMode,
@@ -248,18 +246,11 @@ const Leads = () => {
         />
       </Pivot>
 
-      <Panel
-        headerText="Add Lead"
-        isOpen={isOpen}
-        onDismiss={() => setisOpen(false)}
-        type={PanelType.medium}
-        isLightDismiss={true}
-        closeButtonAriaLabel="Close"
-        isFooterAtBottom={true}
-        
-      >
-        <CreateLeadForm OpenForm={setisOpen} RefreshList={refresh} />
-      </Panel>
+      <CreateLeadForm
+        isFormOpen={isOpen}
+        OpenForm={setisOpen}
+        RefreshList={refresh}
+      />
       <Stack tokens={{ padding: 5 }}>
         <CustomCommandBar OpenForm={setisOpen} RefreshList={refresh} />
         <Stack tokens={{ childrenGap: 2 }} style={{ overflowY: "auto" }}>
@@ -358,23 +349,15 @@ const Leads = () => {
           )}
         </Stack>
       </Stack>
-      <Panel
-        headerText="Update Lead"
-        isOpen={!!openModal}
-        onDismiss={() => setopenModal(undefined)}
-        type={PanelType.medium}
-        isLightDismiss={true}
-        closeButtonAriaLabel="Close"
-        isFooterAtBottom={true}
-      >
-        {openModal && (
-          <LeadUpdateForm
-            value={openModal}
-            OpenForm={setopenModal}
-            RefreshList={refresh}
-          />
-        )}
-      </Panel>
+
+      {openModal && (
+        <LeadUpdateForm
+          isFormOpen={!!openModal}
+          value={openModal}
+          OpenForm={setopenModal}
+          RefreshList={refresh}
+        />
+      )}
     </Stack>
   );
 };

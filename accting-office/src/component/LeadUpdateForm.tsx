@@ -1,12 +1,18 @@
 import { useFormik } from "formik";
 import { object, string } from "yup";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
-import { Stack } from "@fluentui/react";
+import {
+  DefaultButton,
+  Panel,
+  PanelType,
+  PrimaryButton,
+  Stack,
+  Text,
+} from "@fluentui/react";
 import Custominput from "./common/Custominput";
-import Buttoninput from "./common/Buttoninput";
 import CustomSelect from "./common/CustomSelect";
-import { IoCreate } from "react-icons/io5";
 import type { LeadsInterface } from "../types";
+import type { CustomFormprops } from "../types/props";
 const LeadSchema = object({
   name: string().required("Name is required"),
   email: string()
@@ -25,12 +31,15 @@ const LeadSchema = object({
     .matches(/^\d{10}$/, "Phone number must be exactly 10 digits")
     .required("Phone number is required"),
 });
-interface CustomFormProps {
+interface CustomLeadUpdateFormProps extends CustomFormprops {
   value: LeadsInterface;
-  OpenForm: (isOpen: any) => void;
-  RefreshList: () => void;
 }
-const LeadUpdateForm = ({ value, OpenForm, RefreshList }: CustomFormProps) => {
+const LeadUpdateForm = ({
+  value,
+  OpenForm,
+  RefreshList,
+  isFormOpen,
+}: CustomLeadUpdateFormProps) => {
   const axiosPrivate = useAxiosPrivate();
   const formik = useFormik({
     initialValues: {
@@ -56,87 +65,132 @@ const LeadUpdateForm = ({ value, OpenForm, RefreshList }: CustomFormProps) => {
       }
     },
   });
+  const {
+    setFieldValue,
+    dirty,
+    isValid,
+    values,
+    errors,
+    handleBlur,
+    handleChange,
+    handleSubmit,
+    touched,
+  } = formik;
   return (
-    <Stack>
-      <form className="d-flex flex-column gap-3" onSubmit={formik.handleSubmit}>
-        <Custominput
-          name="name"
-          type="text"
-          classname=" border-0"
-          placeholder="Full Name"
-          value={formik.values.name}
-          onChange={formik.handleChange("name")}
-          onBlur={formik.handleBlur("name")}
-        />
-        <div className="error">{formik.touched.name && formik.errors.name}</div>
-        <Custominput
-          name="email"
-          type="email"
-          classname=" border-0"
-          placeholder="Email@Address"
-          value={formik.values.email}
-          onChange={formik.handleChange("email")}
-          onBlur={formik.handleBlur("email")}
-        />
-        <div className="error">
-          {formik.touched.email && formik.errors.email}
-        </div>
-        <Custominput
-          name="phone_number"
-          type="text"
-          classname=" border-0"
-          placeholder="Phone Number"
-          value={formik.values.phone_number}
-          onChange={formik.handleChange("phone_number")}
-          onBlur={formik.handleBlur("phone_number")}
-        />
-        <div className="error">
-          {formik.touched.phone_number && formik.errors.phone_number}
-        </div>
-        <CustomSelect
-          label="Type"
-          selectedKey={formik.values.type}
-          onChange={(_, option) => formik.setFieldValue("type", option?.key)}
-          onBlur={formik.handleBlur}
-          options={[
-            { key: "", text: "Please select a role", disabled: true },
-            { key: "lead", text: "Lead" },
-            { key: "contact", text: "Contact" },
-          ]}
-          styles={{
-            root: { border: "none" },
-          }}
-        />
-        <div className="error">{formik.touched.type && formik.errors.type}</div>{" "}
-        <CustomSelect
-          label="Status"
-          selectedKey={formik.values.status}
-          onChange={(_, option) => formik.setFieldValue("status", option?.key)}
-          onBlur={formik.handleBlur}
-          options={[
-            {
-              key: "",
-              text: "Please select  status of lead",
-              disabled: true,
-            },
-            { key: "active", text: "Active" },
-            { key: "inactive", text: "In-Active" },
-          ]}
-          styles={{
-            root: { border: "none" },
-          }}
-        />
-        <div className="error">
-          {formik.touched.status && formik.errors.status}
-        </div>
-        <Buttoninput
-          color="primary"
-          icon={<IoCreate />}
-          label="Save"
-          type="submit"
-        />
-      </form>
-    </Stack>
+    <Panel
+      headerText="Update Lead"
+      isOpen={isFormOpen}
+      onDismiss={() => OpenForm(undefined)}
+      type={PanelType.medium}
+      isLightDismiss={true}
+      closeButtonAriaLabel="Close"
+      onRenderFooterContent={() => (
+        <Stack horizontal tokens={{ childrenGap: 12 }}>
+          <PrimaryButton
+            type="submit"
+            form="leadUpdateForm"
+            disabled={!dirty || !isValid}
+          >
+            Save
+          </PrimaryButton>
+          <DefaultButton onClick={() => OpenForm(false)}>Cancel</DefaultButton>
+        </Stack>
+      )}
+      isFooterAtBottom={true}
+    >
+      <Stack>
+        <form id="leadUpdateForm" onSubmit={handleSubmit}>
+          <Stack tokens={{ childrenGap: 10 }} style={{ width: "100%" }}>
+            <Stack
+              horizontal
+              tokens={{ childrenGap: 10 }}
+              style={{ width: "100%" }}
+            >
+              <Stack style={{ width: "50%" }}>
+                <Custominput
+                  name="name"
+                  type="text"
+                  classname=" border-0"
+                  placeholder="Full Name"
+                  value={values.name}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                />
+                <Text className="error">{touched.name && errors.name}</Text>
+              </Stack>
+              <Stack style={{ width: "50%" }}>
+                <Custominput
+                  name="email"
+                  type="email"
+                  classname=" border-0"
+                  placeholder="Email@Address"
+                  value={values.email}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                />
+                <Text className="error">{touched.email && errors.email}</Text>
+              </Stack>
+            </Stack>
+            <Stack horizontal tokens={{childrenGap:5}} style={{ width: "100%" }}>
+              <Stack style={{ width: "50%" }}>
+                <Custominput
+                  name="phone_number"
+                  type="text"
+                  classname=" border-0"
+                  placeholder="Phone Number"
+                  value={values.phone_number}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                />
+                <Text className="error">
+                  {touched.phone_number && errors.phone_number}
+                </Text>
+              </Stack>
+              <Stack style={{ width: "50%" }}>
+                <CustomSelect
+                  label="Type"
+                  selectedKey={values.type}
+                  onChange={(_, option) =>
+                    formik.setFieldValue("type", option?.key)
+                  }
+                  onBlur={handleBlur}
+                  options={[
+                    { key: "", text: "Please select a role", disabled: true },
+                    { key: "lead", text: "Lead" },
+                    { key: "contact", text: "Contact" },
+                  ]}
+                  styles={{
+                    root: { border: "none" },
+                  }}
+                />
+                <Text className="error">{touched.type && errors.type}</Text>
+              </Stack>
+            </Stack>
+          </Stack>
+          <Stack >
+            <CustomSelect
+              label="Status"
+              selectedKey={values.status}
+              onChange={(_, option) => setFieldValue("status", option?.key)}
+              onBlur={handleBlur}
+              options={[
+                {
+                  key: "",
+                  text: "Please select  status of lead",
+                  disabled: true,
+                },
+                { key: "active", text: "Active" },
+                { key: "inactive", text: "In-Active" },
+              ]}
+              styles={{
+                root: { border: "none" },
+              }}
+            />
+            <Text className="error">{touched.status && errors.status}</Text>
+          </Stack>
+        </form>
+      </Stack>
+    </Panel>
   );
 };
 

@@ -16,7 +16,7 @@ namespace Task_backend.Models
         [BsonElement("type"), BsonRepresentation(BsonType.String)]
         public required string Type { get; set; }
         [BsonElement("status"), BsonRepresentation(BsonType.String)]
-        public  string Status { get; set; } = "active";
+        public string Status { get; set; } = "active";
         [BsonElement("phone_number"), BsonRepresentation(BsonType.String)]
         public required string Phone_Number { get; set; }
         [BsonElement("created_by_id"), BsonRepresentation(BsonType.ObjectId)]

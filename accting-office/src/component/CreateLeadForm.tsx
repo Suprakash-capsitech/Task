@@ -1,11 +1,16 @@
 import { useFormik } from "formik";
 import { object, string } from "yup";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
-import { Stack, Text } from "@fluentui/react";
+import {
+  DefaultButton,
+  Panel,
+  PanelType,
+  PrimaryButton,
+  Stack,
+  Text,
+} from "@fluentui/react";
 import Custominput from "./common/Custominput";
-import Buttoninput from "./common/Buttoninput";
 import CustomSelect from "./common/CustomSelect";
-import { IoCreate } from "react-icons/io5";
 import type { CustomFormprops } from "../types/props";
 const LeadSchema = object({
   name: string().required("Name is required"),
@@ -23,7 +28,11 @@ const LeadSchema = object({
     .required("Phone number is required"),
 });
 
-const CreateLeadForm = ({ OpenForm, RefreshList }: CustomFormprops) => {
+const CreateLeadForm = ({
+  OpenForm,
+  RefreshList,
+  isFormOpen,
+}: CustomFormprops) => {
   const axiosPrivate = useAxiosPrivate();
   const formik = useFormik({
     initialValues: {
@@ -45,75 +54,97 @@ const CreateLeadForm = ({ OpenForm, RefreshList }: CustomFormprops) => {
       }
     },
   });
+  const { values, errors, handleBlur, handleChange, handleSubmit, touched } =
+    formik;
   return (
-    <Stack>
-      <form className="" onSubmit={formik.handleSubmit}>
-        <Stack tokens={{ childrenGap: 10 }}>
-          <Custominput
-            name="name"
-            type="text"
-            classname=" border-0"
-            placeholder="Full Name"
-            value={formik.values.name}
-            onChange={formik.handleChange("name")}
-            onBlur={formik.handleBlur("name")}
-          />
-          <Text className="error">
-            {formik.touched.name && formik.errors.name}
-          </Text>
-          <Custominput
-            name="email"
-            type="email"
-            classname=" border-0"
-            placeholder="Email@Address"
-            value={formik.values.email}
-            onChange={formik.handleChange("email")}
-            onBlur={formik.handleBlur("email")}
-          />
-          <Text className="error">
-            {formik.touched.email && formik.errors.email}
-          </Text>
-          <Custominput
-            name="phone_number"
-            type="text"
-            classname=" border-0"
-            placeholder="Phone Number"
-            value={formik.values.phone_number}
-            onChange={formik.handleChange("phone_number")}
-            onBlur={formik.handleBlur("phone_number")}
-          />
-          <Text className="error">
-            {formik.touched.phone_number && formik.errors.phone_number}
-          </Text>
-          <CustomSelect
-            label="Type"
-            selectedKey={formik.values.type}
-            onChange={(_, option) => formik.setFieldValue("type", option?.key)}
-            onBlur={formik.handleBlur}
-            options={[
-              { key: "", text: "Please select a role", disabled: true },
-              { key: "lead", text: "Lead" },
-              { key: "contact", text: "Contact" },
-            ]}
-            styles={{
-              root: { border: "none" },
-            }}
-          />
-          <Text className="error">
-            {formik.touched.type && formik.errors.type}
-          </Text>
-          <Stack horizontalAlign="end" >
-
-          <Buttoninput
-            color="primary"
-            icon={<IoCreate />}
-            label="Save"
-            type="submit"
-          />
-          </Stack>
+    <Panel
+      headerText="Add Lead"
+      isOpen={isFormOpen}
+      onDismiss={() => OpenForm(false)}
+      type={PanelType.medium}
+      closeButtonAriaLabel="Close"
+      onRenderFooterContent={() => (
+        <Stack horizontal tokens={{ childrenGap: 12 }}>
+          <PrimaryButton type="submit" form="leadForm">
+            Save
+          </PrimaryButton>
+          <DefaultButton onClick={() => OpenForm(false)}>Cancel</DefaultButton>
         </Stack>
-      </form>
-    </Stack>
+      )}
+      isFooterAtBottom={true}
+    >
+      <Stack>
+        <form id="leadForm" onSubmit={handleSubmit}>
+          <Stack tokens={{ childrenGap: 10 }} style={{ width: "100%" }}>
+            <Stack
+              horizontal
+              tokens={{ childrenGap: 10 }}
+              style={{ width: "100%" }}
+            >
+              <Stack style={{ width: "50%" }}>
+                <Custominput
+                  name="name"
+                  type="text"
+                  classname=" border-0"
+                  placeholder="Full Name"
+                  value={values.name}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                />
+                <Text className="error">{touched.name && errors.name}</Text>
+              </Stack>
+              <Stack style={{ width: "50%" }}>
+                <Custominput
+                  name="email"
+                  type="email"
+                  classname=" border-0"
+                  placeholder="Email@Address"
+                  value={values.email}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                />
+                <Text className="error">{touched.email && errors.email}</Text>
+              </Stack>
+            </Stack>
+            <Stack horizontal tokens={{childrenGap:5}} style={{ width: "100%" }}>
+              <Stack style={{ width: "50%" }}>
+                <Custominput
+                  name="phone_number"
+                  type="text"
+                  classname=" border-0"
+                  placeholder="Phone Number"
+                  value={values.phone_number}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                />
+                <Text className="error">
+                  {touched.phone_number && errors.phone_number}
+                </Text>
+              </Stack>
+              <Stack style={{ width: "50%" }}>
+                <CustomSelect
+                  label="Type"
+                  selectedKey={values.type}
+                  onChange={(_, option) =>
+                    formik.setFieldValue("type", option?.key)
+                  }
+                  onBlur={handleBlur}
+                  options={[
+                    { key: "", text: "Please select a role", disabled: true },
+                    { key: "lead", text: "Lead" },
+                    { key: "contact", text: "Contact" },
+                  ]}
+                  styles={{
+                    root: { border: "none" },
+                  }}
+                />
+                <Text className="error">{touched.type && errors.type}</Text>
+              </Stack>
+            </Stack>
+          </Stack>
+        </form>
+      </Stack>
+    </Panel>
   );
 };
 

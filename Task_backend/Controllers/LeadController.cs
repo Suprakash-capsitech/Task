@@ -62,6 +62,36 @@ namespace Task_backend.Controllers
 
 
 
+        [HttpGet("getall")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<LeadsModel>> GetAll()
+        {
+            try
+            {
+
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var role = User.FindFirst(ClaimTypes.Role)?.Value;
+                if (!String.IsNullOrEmpty(role) && !String.IsNullOrEmpty(userId))
+                {
+
+                    var contactList = await _leadService.GetAll( role, userId);
+                    return Ok(contactList);
+                }
+                else
+                {
+                    return StatusCode(500);
+                }
+            }
+            catch (Exception)
+            {
+
+                return StatusCode(500);
+            }
+        }
+
         [HttpGet("getleads")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
