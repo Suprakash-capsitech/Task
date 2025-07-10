@@ -2,7 +2,9 @@ import { useFormik } from "formik";
 import { object, string } from "yup";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import {
+  ActionButton,
   DefaultButton,
+  Label,
   Panel,
   PanelType,
   PrimaryButton,
@@ -12,6 +14,9 @@ import {
 import Custominput from "./common/Custominput";
 import CustomSelect from "./common/CustomSelect";
 import type { CustomFormprops } from "../types/props";
+import Select from "react-select";
+import { useEffect, useState } from "react";
+import type { ClientInterface } from "../types";
 const LeadSchema = object({
   name: string().required("Name is required"),
   email: string()
@@ -26,13 +31,20 @@ const LeadSchema = object({
   phone_number: string()
     .matches(/^\d{10}$/, "Phone number must be exactly 10 digits")
     .required("Phone number is required"),
-});
 
+  client_id: string().optional(),
+});
 const CreateLeadForm = ({
   OpenForm,
   RefreshList,
   isFormOpen,
 }: CustomFormprops) => {
+  const [client, setClient] = useState<ClientInterface[]>([]);
+  const [clientlist, setclientlist] = useState<
+    { value: string; label: string }[]
+  >([]);
+  const [linkClient, setlinkClient] = useState<boolean>(false);
+  const [clientType, setclientType] = useState<string>("");
   const axiosPrivate = useAxiosPrivate();
   const formik = useFormik({
     initialValues: {
@@ -40,6 +52,7 @@ const CreateLeadForm = ({
       email: "",
       type: "",
       phone_number: "",
+      client_id: "",
     },
     validationSchema: LeadSchema,
     onSubmit: async (values) => {
@@ -48,14 +61,48 @@ const CreateLeadForm = ({
         if (response.data) {
           OpenForm(false);
           RefreshList();
+          resetForm();
         }
       } catch (error) {
         console.log(error);
       }
     },
   });
-  const { values, errors, handleBlur, handleChange, handleSubmit, touched } =
-    formik;
+  const {
+    setFieldValue,
+    resetForm,
+    values,
+    errors,
+    handleBlur,
+    handleChange,
+    handleSubmit,
+    touched,
+  } = formik;
+
+  const GetClients = async () => {
+    try {
+      const response = await axiosPrivate("/Client/clients");
+      if (response.data) {
+        setClient(response.data);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    GetClients();
+  }, []);
+  useEffect(() => {
+    setclientlist(
+      client
+        ?.filter((item) => item.type === clientType)
+        .map((item) => ({
+          value: item.id,
+          label: item.name,
+        }))
+    );
+  }, [clientType]);
   return (
     <Panel
       headerText="Add Lead"
@@ -65,10 +112,19 @@ const CreateLeadForm = ({
       closeButtonAriaLabel="Close"
       onRenderFooterContent={() => (
         <Stack horizontal tokens={{ childrenGap: 12 }}>
-          <PrimaryButton type="submit" form="leadForm">
+          <PrimaryButton
+            iconProps={{ iconName: "Save" }}
+            type="submit"
+            form="leadForm"
+          >
             Save
           </PrimaryButton>
-          <DefaultButton onClick={() => OpenForm(false)}>Cancel</DefaultButton>
+          <DefaultButton
+            iconProps={{ iconName: "cancel" }}
+            onClick={() => OpenForm(false)}
+          >
+            Cancel
+          </DefaultButton>
         </Stack>
       )}
       isFooterAtBottom={true}
@@ -106,7 +162,11 @@ const CreateLeadForm = ({
                 <Text className="error">{touched.email && errors.email}</Text>
               </Stack>
             </Stack>
-            <Stack horizontal tokens={{childrenGap:5}} style={{ width: "100%" }}>
+            <Stack
+              horizontal
+              tokens={{ childrenGap: 5 }}
+              style={{ width: "100%" }}
+            >
               <Stack style={{ width: "50%" }}>
                 <Custominput
                   name="phone_number"
@@ -141,6 +201,59 @@ const CreateLeadForm = ({
                 <Text className="error">{touched.type && errors.type}</Text>
               </Stack>
             </Stack>
+            <Stack horizontalAlign="start">
+              <ActionButton
+                iconProps={{ iconName: `${linkClient ? "remove" : "Link"}` }}
+                onClick={() => setlinkClient((prev) => !prev)}
+                styles={{
+                  root: {
+                    backgroundColor: "rgb(248, 248, 248)",
+                    borderRadius: 8,
+                    fontSize: 12,
+                  },
+                  icon: {
+                    color: "rgb(51, 51, 51)",
+                  },
+                }}
+              >
+                Client
+              </ActionButton>
+            </Stack>
+            {linkClient && (
+              <Stack horizontal tokens={{ childrenGap: 8 }}>
+                <Stack style={{ width: "30%" }}>
+                  <CustomSelect
+                    label="Type"
+                    selectedKey={clientType}
+                    onChange={(_, option) =>
+                      setclientType(option?.key as string)
+                    }
+                    onBlur={handleBlur}
+                    options={[
+                      {
+                        key: "",
+                        text: "Select Type",
+                        disabled: true,
+                      },
+                      { key: "limited", text: "Limited" },
+                      { key: "individual", text: "Individual" },
+                      { key: "Partnersihp", text: "Partnersihp" },
+                      { key: "LLP", text: "LLP" },
+                    ]}
+                    styles={{
+                      root: { border: "none" },
+                    }}
+                  />
+                </Stack>
+                <Stack style={{ width: "70%" }}>
+                  <Label>Business Name </Label>
+                  <Select
+                    options={clientlist}
+                    onChange={(item) => setFieldValue("client_id", item?.value)}
+                  />
+                </Stack>
+              </Stack>
+            )}
           </Stack>
         </form>
       </Stack>

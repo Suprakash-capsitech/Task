@@ -2,6 +2,7 @@ import {
   DefaultButton,
   DetailsList,
   DetailsListLayoutMode,
+  Dropdown,
   IconButton,
   Pivot,
   PivotItem,
@@ -10,6 +11,7 @@ import {
   Stack,
   Text,
   type IColumn,
+  type IDropdownOption,
 } from "@fluentui/react";
 import CustomCommandBar from "../component/common/CustomCommandBar";
 import { useEffect, useState } from "react";
@@ -24,13 +26,22 @@ import { isAxiosError } from "axios";
 const Leads = () => {
   const [isOpen, setisOpen] = useState<boolean>(false);
   const [openModal, setopenModal] = useState<LeadsInterface>();
+
+  const [search, setSearch] = useState<string>("");
   const [isloading, setisloading] = useState<boolean>(false);
   const [leads, setleads] = useState<LeadsInterface[]>([]);
   const [columns, setColumns] = useState<IColumn[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [searchParam, setSearchParam] = useState("getleads");
 
-  const ITEMS_PER_PAGE = 5;
+  const [itemperpage, setItemperpage] = useState<number>(5);
+  const pageoption: IDropdownOption[] = [
+    { key: 5, text: "5" },
+    { key: 10, text: "10" },
+    { key: 15, text: "15" },
+    { key: 20, text: "20" },
+  ];
+  const ITEMS_PER_PAGE = itemperpage;
   const totalPages = Math.ceil(leads.length / ITEMS_PER_PAGE);
   const startIndex = currentPage * ITEMS_PER_PAGE;
   const paginatedItems = leads.slice(startIndex, startIndex + ITEMS_PER_PAGE);
@@ -43,7 +54,11 @@ const Leads = () => {
   const GetLeads = async () => {
     setisloading(true);
     try {
-      const response = await axiosPrivate.get(`/Lead/${searchParam}`);
+      const response = await axiosPrivate.get(`/Lead/${searchParam}`, {
+        params: {
+          search: search,
+        },
+      });
 
       if (response.data) {
         setleads(response.data);
@@ -59,7 +74,6 @@ const Leads = () => {
   useEffect(() => {
     GetLeads();
   }, [searchParam]);
-
   const handleTabClick = (item?: PivotItem) => {
     const key = item?.props.itemKey;
     if (key) {
@@ -163,13 +177,13 @@ const Leads = () => {
         isResizable: false,
         onRender: (item: LeadsInterface) => (
           <Stack horizontal tokens={{ childrenGap: 8 }}>
-            <DefaultButton
+            {/* <DefaultButton
               iconProps={{ iconName: "Edit" }}
               title="Edit"
               ariaLabel="Edit"
               styles={{ root: { minWidth: 32, padding: 4, border: 0 } }}
               onClick={() => setopenModal(item)}
-            />
+            /> */}
             <DefaultButton
               iconProps={{ iconName: "Delete" }}
               title="Delete"
@@ -197,8 +211,11 @@ const Leads = () => {
       },
     ];
     setColumns(initialColumns);
-  }, [startIndex]);
+  }, [startIndex, itemperpage]);
 
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [itemperpage]);
   // Handle column sorting
   const onColumnClick = (
     _ev?: React.MouseEvent<HTMLElement>,
@@ -232,7 +249,9 @@ const Leads = () => {
   const handlePrevious = () => setCurrentPage((prev) => Math.max(prev - 1, 0));
   const handleNext = () =>
     setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1));
-
+  const HandleSearch = () => {
+    GetLeads();
+  };
   return (
     <Stack>
       <CustomBreadCrum items={item} />
@@ -252,7 +271,12 @@ const Leads = () => {
         RefreshList={refresh}
       />
       <Stack tokens={{ padding: 5 }}>
-        <CustomCommandBar OpenForm={setisOpen} RefreshList={refresh} />
+        <CustomCommandBar
+          handleSubmit={HandleSearch}
+          SetSearch={setSearch}
+          OpenForm={setisOpen}
+          RefreshList={refresh}
+        />
         <Stack tokens={{ childrenGap: 2 }} style={{ overflowY: "auto" }}>
           {isloading ? (
             <Spinner label="Loading " />
@@ -300,49 +324,76 @@ const Leads = () => {
               ) : (
                 <Stack
                   horizontal
-                  horizontalAlign="end"
-                  tokens={{ childrenGap: 12 }}
+                  horizontalAlign="space-between"
+                  tokens={{ childrenGap: 12, padding: 5 }}
                   verticalAlign="center"
                 >
-                  <IconButton
-                    iconProps={{ iconName: "ChevronLeft" }}
-                    title="Previous"
-                    ariaLabel="Previous"
-                    onClick={handlePrevious}
-                    disabled={currentPage === 0}
-                  />
+                  <Stack>
+                    <Dropdown
+                      selectedKey={itemperpage}
+                      onChange={(_event, option) => {
+                        if (option) {
+                          setItemperpage(option.key as number);
+                        }
+                      }}
+                      options={pageoption}
+                      styles={{
+                        title: {
+                          border: "1px solid rgba(0,0,0,.2)",
 
-                  <Stack
-                    horizontal
-                    verticalAlign="end"
-                    tokens={{ childrenGap: 8 }}
-                  >
-                    {Array.from({ length: totalPages }, (_, i) => (
-                      <Text
-                        key={i}
-                        onClick={() => setCurrentPage(i)}
-                        style={{
-                          cursor: "pointer",
-                          fontWeight: currentPage === i ? "bold" : "normal",
-                          color: currentPage === i ? "#0078D4" : "#333",
-                          padding: "4px 6px",
-                          borderRadius: 4,
-                          backgroundColor:
-                            currentPage === i ? "#e5f1fb" : "transparent",
-                        }}
-                      >
-                        {i + 1}
-                      </Text>
-                    ))}
+                          borderRadius: 6,
+                        },
+                        callout: {
+                          borderRadius: 5,
+                        },
+                        dropdown: {
+                          border: "none",
+                          outline: "none",
+                        },
+                      }}
+                    />
                   </Stack>
+                  <Stack horizontal tokens={{ childrenGap: 8 }}>
+                    <IconButton
+                      iconProps={{ iconName: "ChevronLeft" }}
+                      title="Previous"
+                      ariaLabel="Previous"
+                      onClick={handlePrevious}
+                      disabled={currentPage === 0}
+                    />
 
-                  <IconButton
-                    iconProps={{ iconName: "ChevronRight" }}
-                    title="Next"
-                    ariaLabel="Next"
-                    onClick={handleNext}
-                    disabled={currentPage >= totalPages - 1}
-                  />
+                    <Stack
+                      horizontal
+                      verticalAlign="end"
+                      tokens={{ childrenGap: 8 }}
+                    >
+                      {Array.from({ length: totalPages }, (_, i) => (
+                        <Text
+                          key={i}
+                          onClick={() => setCurrentPage(i)}
+                          style={{
+                            cursor: "pointer",
+                            fontWeight: currentPage === i ? "bold" : "normal",
+                            color: currentPage === i ? "#0078D4" : "#333",
+                            padding: "4px 6px",
+                            borderRadius: 4,
+                            backgroundColor:
+                              currentPage === i ? "#e5f1fb" : "transparent",
+                          }}
+                        >
+                          {i + 1}
+                        </Text>
+                      ))}
+                    </Stack>
+
+                    <IconButton
+                      iconProps={{ iconName: "ChevronRight" }}
+                      title="Next"
+                      ariaLabel="Next"
+                      onClick={handleNext}
+                      disabled={currentPage >= totalPages - 1}
+                    />
+                  </Stack>
                 </Stack>
               )}
             </Stack>

@@ -14,11 +14,13 @@ import { useEffect, useState } from "react";
 import type { HistoryInterface, LeadsInterface } from "../types";
 import ProfileCard from "../component/ProfileCard";
 import HistoryCard from "../component/HistoryCard";
+import LeadUpdateForm from "../component/LeadUpdateForm";
 const SingleLead = () => {
   const [lead, setlead] = useState<LeadsInterface>();
   const [isloading, setisloading] = useState<boolean>(false);
   const [searchParam, setSearchParam] = useState<string>("profile");
   const location = useLocation();
+  const [openForm, setopenForm] = useState<boolean>(false);
   const path = location.pathname.split("/")[2];
   const axiosPrivate = useAxiosPrivate();
   const [history, sethistory] = useState<HistoryInterface[]>();
@@ -42,8 +44,11 @@ const SingleLead = () => {
     { key: "lead", text: "Lead", href: "/lead" },
     { key: "Singlelead", text: lead?.name || "", href: location.pathname },
   ];
-
-  const GetClientDetails = async () => {
+  const RefreshDetails = () => {
+    GetLeadDetails();
+    GetHistory()
+  }
+  const GetLeadDetails = async () => {
     setisloading(true);
     try {
       const response = await axiosPrivate.get(`Lead/lead/${path}`);
@@ -58,7 +63,7 @@ const SingleLead = () => {
     }
   };
   useEffect(() => {
-    GetClientDetails();
+    GetLeadDetails();
     GetHistory();
   }, []);
   const handleTabClick = (item?: PivotItem) => {
@@ -94,7 +99,7 @@ const SingleLead = () => {
               itemIcon="Contact"
               itemKey="profile"
             >
-              {lead && <ProfileCard data={lead} />}
+              {lead && <ProfileCard OpenForm={setopenForm} data={lead} />}
             </PivotItem>
             <PivotItem
               headerText="History"
@@ -106,6 +111,7 @@ const SingleLead = () => {
           </Pivot>
         </Stack>
       )}
+    {openForm && lead && <LeadUpdateForm OpenForm={setopenForm}  isFormOpen={openForm} value={lead} RefreshList={RefreshDetails}/>}
     </Stack>
   );
 };

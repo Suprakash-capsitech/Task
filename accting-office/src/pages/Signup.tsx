@@ -5,9 +5,10 @@ import Custominput from "../component/common/Custominput";
 import { isAxiosError } from "axios";
 import { axiosPrivate } from "../config/axios";
 import { useFormik } from "formik";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { object, string } from "yup";
 import CustomSelect from "../component/common/CustomSelect";
+import { Text } from "@fluentui/react";
 
 const Signupschemavalidator = object({
   name: string().required("Please Enter Name"),
@@ -21,6 +22,7 @@ const Signupschemavalidator = object({
     .required("Email is required"),
 });
 const Signup = () => {
+  const [errormessage, seterrormessage] = useState<string>("");
   const Navigate = useNavigate();
   useEffect(() => {
     if (localStorage.getItem("token")) {
@@ -51,7 +53,7 @@ const Signup = () => {
           if (!error.response) {
             console.log("Server not responding");
           } else {
-            console.log(error.response.data);
+            seterrormessage(error?.response.data);
           }
         } else {
           console.log("An unexpected error occurred");
@@ -68,6 +70,8 @@ const Signup = () => {
         <div className="d-flex flex-column justify-content-center align-items-center">
           <img src="./image.png" alt="icon" />
           <h4 className="text-center">Create Your Account</h4>
+
+          <Text className="error">{errormessage}</Text>
         </div>
         <Custominput
           name="name"

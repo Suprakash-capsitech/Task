@@ -59,6 +59,7 @@ const LeadUpdateForm = ({
         if (response.data) {
           OpenForm(undefined);
           RefreshList();
+          resetForm();
         }
       } catch (error) {
         console.log(error);
@@ -75,6 +76,7 @@ const LeadUpdateForm = ({
     handleChange,
     handleSubmit,
     touched,
+    resetForm,
   } = formik;
   return (
     <Panel
@@ -87,13 +89,19 @@ const LeadUpdateForm = ({
       onRenderFooterContent={() => (
         <Stack horizontal tokens={{ childrenGap: 12 }}>
           <PrimaryButton
+            iconProps={{ iconName: "Save" }}
             type="submit"
             form="leadUpdateForm"
             disabled={!dirty || !isValid}
           >
             Save
           </PrimaryButton>
-          <DefaultButton onClick={() => OpenForm(false)}>Cancel</DefaultButton>
+          <DefaultButton
+            iconProps={{ iconName: "cancel" }}
+            onClick={() => OpenForm(false)}
+          >
+            Cancel
+          </DefaultButton>
         </Stack>
       )}
       isFooterAtBottom={true}
@@ -131,7 +139,11 @@ const LeadUpdateForm = ({
                 <Text className="error">{touched.email && errors.email}</Text>
               </Stack>
             </Stack>
-            <Stack horizontal tokens={{childrenGap:5}} style={{ width: "100%" }}>
+            <Stack
+              horizontal
+              tokens={{ childrenGap: 5 }}
+              style={{ width: "100%" }}
+            >
               <Stack style={{ width: "50%" }}>
                 <Custominput
                   name="phone_number"
@@ -167,7 +179,7 @@ const LeadUpdateForm = ({
               </Stack>
             </Stack>
           </Stack>
-          <Stack >
+          <Stack>
             <CustomSelect
               label="Status"
               selectedKey={values.status}

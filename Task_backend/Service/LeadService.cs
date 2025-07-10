@@ -1,4 +1,5 @@
-﻿using MongoDB.Driver;
+﻿using MongoDB.Bson;
+using MongoDB.Driver;
 using System.Data;
 using Task_backend.Data;
 using Task_backend.Dto;
@@ -196,14 +197,25 @@ namespace Task_backend.Service
 
         }
 
-        public async Task<IEnumerable<LeadsModel>> GetLeads(string type, string role, string userId)
+        public async Task<IEnumerable<LeadsModel>> GetLeads(string type, string role, string userId, string? search)
         {
             try
             {
                 if (role == "admin")
                 {
+                    var leadfilter = Builders<LeadsModel>.Filter.Eq(x => x.Type, type);
 
-                    var leadslist = await _dbContext.Leads.Find(x => x.Type == type).ToListAsync();
+                    if (!string.IsNullOrEmpty(search))
+                    {
+                        var searchFilter = Builders<LeadsModel>.Filter.Or(
+                            Builders<LeadsModel>.Filter.Regex("name", new BsonRegularExpression(search, "i")),
+                            Builders<LeadsModel>.Filter.Regex("email", new BsonRegularExpression(search, "i"))
+                        );
+
+                        leadfilter = Builders<LeadsModel>.Filter.And(leadfilter, searchFilter);
+                    }
+
+                    var leadslist = await _dbContext.Leads.Find(leadfilter).ToListAsync();
 
                     var userIds = leadslist.Select(l => l.Created_By_Id).Distinct().ToList();
 
@@ -231,7 +243,22 @@ namespace Task_backend.Service
                 }
                 else
                 {
-                    var leadslist = await _dbContext.Leads.Find(x => x.Type == type && x.Created_By_Id == userId).ToListAsync();
+                    var leadfilter = Builders<LeadsModel>.Filter.And(
+                                        Builders<LeadsModel>.Filter.Eq(x => x.Type, type),
+                                        Builders<LeadsModel>.Filter.Eq(x => x.Created_By_Id, userId)
+                                    );
+
+                    if (!string.IsNullOrEmpty(search))
+                    {
+                        var searchFilter = Builders<LeadsModel>.Filter.Or(
+                            Builders<LeadsModel>.Filter.Regex("name", new BsonRegularExpression(search, "i")),
+                            Builders<LeadsModel>.Filter.Regex("email", new BsonRegularExpression(search, "i"))
+                        );
+
+                        leadfilter = Builders<LeadsModel>.Filter.And(leadfilter, searchFilter);
+                    }
+
+                    var leadslist = await _dbContext.Leads.Find(leadfilter).ToListAsync();
                     var userIds = leadslist.Select(l => l.Created_By_Id).Distinct().ToList();
 
                     var filter = Builders<UsersModel>.Filter.In(u => u.Id, userIds);

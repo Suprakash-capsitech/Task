@@ -1,6 +1,5 @@
 import {
   CommandBar,
-  Dropdown,
   TextField,
   type ICommandBarItemProps,
 } from "@fluentui/react";
@@ -8,9 +7,15 @@ import {
 interface CustomCommandBarProps {
   OpenForm: (isOpen: boolean) => void;
   RefreshList: () => void;
+  handleSubmit: () => void;
+  SetSearch: (value: string) => void;
 }
 
-const CustomCommandBar = ({ OpenForm, RefreshList }: CustomCommandBarProps) => {
+const CustomCommandBar = ({
+  OpenForm,
+  RefreshList,
+  SetSearch,handleSubmit
+}: CustomCommandBarProps) => {
   const _items: ICommandBarItemProps[] = [
     {
       key: "newItem",
@@ -31,28 +36,27 @@ const CustomCommandBar = ({ OpenForm, RefreshList }: CustomCommandBarProps) => {
       key: "search",
       text: "Search",
       onRender: () => (
-        <TextField placeholder="Search" type="text"  iconProps={{ iconName: "Search" }} />
-      ),
-    },
-    {
-      key: "filter",
-      onRender: () => (
-        <Dropdown
-          placeholder="Filter status"
-          options={[
-            { key: "active", text: "Active" },
-            { key: "inactive", text: "In-Active" },
-          ]}
+        <TextField
+          placeholder="Search"
+          type="text"
+          iconProps={{ iconName: "Search" }}
+          onChange={(e) => SetSearch(e.currentTarget.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault(); 
+              handleSubmit();
+            }
+          }}
         />
       ),
     },
+    
   ];
 
   return (
     <CommandBar
       items={_items}
       farItems={_faritems}
-
       ariaLabel="Inbox actions"
       primaryGroupAriaLabel="Email actions"
       farItemsGroupAriaLabel="More actions"

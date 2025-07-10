@@ -5,7 +5,10 @@ import type { FC } from "react";
 interface HistoryCardProps {
   data: HistoryInterface[];
 }
-const iconNames: Record<"Created" | "Updated" | "Deleted" | "Linked"|"Unlinked", string> = {
+const iconNames: Record<
+  "Created" | "Updated" | "Deleted" | "Linked" | "Unlinked",
+  string
+> = {
   Created: "add",
   Updated: "edit",
   Deleted: "delete",
@@ -25,6 +28,17 @@ const HistoryCard: FC<HistoryCardProps> = ({ data }) => {
             activityDescription={Item.description}
             comments={`performed by ${Item.performed_By.name}`}
             key={key}
+            styles={{
+              activityTypeIcon: {
+                paddingInlineStart: 15,
+                paddingInlineEnd: 15,
+                alignContent: "center",
+                fontSize: 20
+              },
+              activityContent: {
+                paddingBottom: 15,
+              },
+            }}
             style={{ borderBottom: "1px solid rgb(218, 218, 218)" }}
           />
         );

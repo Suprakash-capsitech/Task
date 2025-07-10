@@ -11,7 +11,7 @@ import {
 import { useRef, useState } from "react";
 import { BiSearch, BiUser } from "react-icons/bi";
 import { CiSettings } from "react-icons/ci";
-import Buttoninput from "./Buttoninput";
+import Buttoninput from "../common/Buttoninput";
 import { LuLogOut } from "react-icons/lu";
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import { useNavigate } from "react-router-dom";

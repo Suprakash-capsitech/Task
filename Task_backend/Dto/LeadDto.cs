@@ -9,6 +9,7 @@ namespace Task_backend.Dto
         public required string Email { get; set; }
         public required string Type { get; set; }
         public required string Phone_Number { get; set; }
+        public required string Client_id { get; set; }
 
 
     }

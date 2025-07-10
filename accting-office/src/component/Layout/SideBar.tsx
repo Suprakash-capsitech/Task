@@ -7,6 +7,7 @@ import {
   IconButton,
   Stack,
   Label,
+  Separator,
 } from "@fluentui/react";
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
@@ -67,7 +68,7 @@ const SideBar: React.FC = () => {
           name: "Lead Sources",
           key: "leadsource",
           icon: "UserEvent",
-          url: null,
+          url: "#", // issue
 
           onClick: () => toggleExpand("leadsources"),
           isExpanded: expandedKeys.includes("leadsources"),
@@ -93,7 +94,7 @@ const SideBar: React.FC = () => {
     root: {
       width: collapsed ? 60 : 240,
       minHeight: "100%",
-      overflowY: "hidden",
+      overflowY: "auto",
       overflowX: "hidden",
       transition: "width 0.2s ease",
       paddingLeft: 5,
@@ -101,10 +102,18 @@ const SideBar: React.FC = () => {
     linkText: {
       display: collapsed ? "none" : "inline",
       paddingLeft: 5,
+      fontSize:12,
+      color: "black"
     },
     groupContent: {
       marginBottom: 0,
     },
+    compositeLink:{
+      alignItems:"end",
+      alignContent:"end",
+      justifyContent:"end",
+      justifyItems:"end"
+    }
   };
 
   return (
@@ -126,9 +135,9 @@ const SideBar: React.FC = () => {
 
       <Stack style={{ overflowY: "auto", scrollbarWidth: "none" }}>
         {navLinkGroups.map((group, index) => (
-          <Stack key={index} style={{ margin: 0 }}>
+          <Stack key={index} style={{ margin: 0  }}>
             {!collapsed && group.label && (
-              <Label styles={{ root: { fontWeight: 600, paddingLeft: 5 } }}>
+              <Label styles={{ root: { fontSize:16 ,fontWeight: 700, padding:0, paddingLeft: 15 } }}>
                 {group.label}
               </Label>
             )}
@@ -138,6 +147,9 @@ const SideBar: React.FC = () => {
               styles={navStyles}
               selectedKey={path ? path : "dashboard"}
             />
+            <Separator styles={{root:{
+              height:3
+            }}}></Separator>
           </Stack>
         ))}
       </Stack>

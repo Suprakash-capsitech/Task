@@ -59,7 +59,7 @@ const Login = () => {
     },
   });
   return (
-    <div className="screenheight  d-flex  align-items-center justify-content-center ">
+    <div className="  d-flex  align-items-center justify-content-center ">
       <form
         onSubmit={formik.handleSubmit}
         className="  d-flex flex-column  gap-2 p-3 rounded shadow loginform bg-white"
@@ -79,9 +79,9 @@ const Login = () => {
           onChange={formik.handleChange("email")}
           onBlur={formik.handleBlur("email")}
         />
-        <div className="error">
+        <Text className="error">
           {formik.touched.email && formik.errors.email}
-        </div>
+        </Text>
         <Custominput
           name="password"
           type="password"
@@ -92,21 +92,21 @@ const Login = () => {
           onBlur={formik.handleBlur("password")}
         />
 
-        <div className="error">
+        <Text className="error">
           {formik.touched.password && formik.errors.password}
-        </div>
+        </Text>
         <Buttoninput
           color="primary"
           icon={<MdLogin />}
           type="submit"
           label="Login"
         />
-        <div className="text-center">
+        <Text className="text-center">
           Don't have an account?{" "}
           <Link to={"/signup"} className="text-primary text-decoration-none ">
             Sign up here
           </Link>
-        </div>
+        </Text>
       </form>
     </div>
   );

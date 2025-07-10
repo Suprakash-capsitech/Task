@@ -1,15 +1,16 @@
 import { Outlet } from "react-router-dom";
-import TopNav from "../common/TopNav";
 import { Stack } from "@fluentui/react";
+import TopNav from "./TopNav";
 
 const ViewLayout = () => {
   return (
-   <Stack verticalFill={true} style={{overflow:"hidden", width:"100%",maxWidth:"100%" }}>
-
+    <Stack
+      verticalFill={true}
+      style={{ overflow: "auto", width: "100%", maxWidth: "100%" }}
+    >
       <TopNav />
       <Outlet />
-   </Stack>
-    
+    </Stack>
   );
 };
 

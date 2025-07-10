@@ -1,4 +1,5 @@
 import {
+  ActionButton,
   Persona,
   PersonaPresence,
   PersonaSize,
@@ -15,10 +16,12 @@ import type { ClientInterface, HistoryInterface } from "../types";
 import HistoryCard from "../component/HistoryCard";
 import ProfileCard from "../component/ProfileCard";
 import ContactPivot from "../component/ContactPivot";
+import ClientUpdateForm from "../component/ClientUpdateForm";
 const SingleClient = () => {
   const [client, setclient] = useState<ClientInterface>();
-
   const [isloading, setisloading] = useState<boolean>(false);
+  const [openForm, setopenForm] = useState<boolean>(false);
+
   const [searchParam, setSearchParam] = useState<string>("profile");
   const location = useLocation();
   const path = location.pathname.split("/")[2];
@@ -44,7 +47,23 @@ const SingleClient = () => {
     { key: "client", text: "Client", href: "/client" },
     { key: "SingleClient", text: client?.name || "", href: location.pathname },
   ];
-
+  const ActionButtonlist = [
+    { title: "Add Note", iconName: "CommentAdd" },
+    { title: "Send Email", iconName: "NewMail" },
+    { title: "Create New Invoice", iconName: "AccountActivity" },
+    { title: "Create New Quote", iconName: "Money" },
+    { title: "Create New E-signature", iconName: "AddToShoppingList" },
+    { title: "Create New Data Request", iconName: "DietPlanNotebook" },
+    { title: "Create or View access codes", iconName: "QRCode" },
+    { title: "Click to add a complaint", iconName: "ReportLibraryMirrored" },
+    { title: "Set Private", iconName: "Unlock" },
+    { title: "Client User", iconName: "Contact" },
+    { title: "Add new Tag", iconName: "Tag" },
+  ];
+  const refreshDetails = () => {
+    GetClientDetails();
+    GetHistory();
+  };
   const GetClientDetails = async () => {
     setisloading(true);
     try {
@@ -71,51 +90,95 @@ const SingleClient = () => {
     }
   };
   return (
-    <Stack>
+    <Stack tokens={{ maxHeight: "90vh" }}>
       <CustomBreadCrum items={BreadCrumitem} />
       {isloading ? (
         <Spinner label="Data is Loading" />
       ) : (
-        <Stack tokens={{ padding: 15, childrenGap: 10 }}>
-          <Persona
-            imageUrl={"image.png"}
-            imageInitials={client?.name.slice(0, 2)}
-            text={client?.name}
-            secondaryText={client?.type}
-            showSecondaryText
-            size={PersonaSize.size72}
-            presence={
-              client?.status == "active"
-                ? PersonaPresence.online
-                : PersonaPresence.offline
-            }
-            imageAlt="profile"
-          />
-          <Pivot onLinkClick={handleTabClick} selectedKey={searchParam}>
-            <PivotItem
-              headerText="Profile"
-              itemIcon="Contact"
-              itemKey="profile"
+        <Stack
+          tokens={{ childrenGap: 10 }}
+          style={{ minHeight: "100%", overflow: "auto" }}
+        >
+          <Stack tokens={{ padding: 10 }}>
+            <Persona
+              imageUrl={"image.png"}
+              imageInitials={client?.name.slice(0, 2)}
+              text={client?.name}
+              secondaryText={client?.type}
+              showSecondaryText
+              onRenderTertiaryText={() => (
+                <Stack horizontal tokens={{ childrenGap: 8 }}>
+                  {ActionButtonlist.map((item) => (
+                    <ActionButton
+                      key={item.title}
+                      title={item.title}
+                      iconProps={{ iconName: item.iconName }}
+                    />
+                  ))}
+                </Stack>
+              )}
+              styles={{
+                secondaryText: {
+                  padding: 5,
+                },
+                primaryText: {
+                  paddingInlineStart: 5,
+                },
+              }}
+              size={PersonaSize.size72}
+              presence={
+                client?.status == "active"
+                  ? PersonaPresence.online
+                  : PersonaPresence.offline
+              }
+              imageAlt="profile"
+            />
+          </Stack>
+          <Stack
+            style={{
+              minHeight: "100%",
+              overflow: "auto",
+              scrollbarWidth: "thin",
+            }}
+          >
+            <Pivot
+              onLinkClick={handleTabClick}
+              selectedKey={searchParam}
+              styles={{ link: { padding: 20 } ,itemContainer:{
+                paddingTop: 15
+              }}}
             >
-              {client && <ProfileCard data={client} />}
-            </PivotItem>
-            <PivotItem
-              headerText="History"
-              itemIcon="history"
-              itemKey="history"
-            >
-              {history && <HistoryCard data={history} />}
-            </PivotItem>
-            <PivotItem
-              headerText="Contact"
-              itemIcon="Contact"
-              itemKey="Contact"
-            >
-              {client && <ContactPivot data={client.contact_Details} />}
-            </PivotItem>
-          </Pivot>
+              <PivotItem
+                headerText="Profile"
+                itemIcon="Contact"
+                itemKey="profile"
+              >
+                {client && <ProfileCard OpenForm={setopenForm} data={client} />}
+              </PivotItem>
+              <PivotItem
+                headerText="History"
+                itemIcon="history"
+                itemKey="history"
+              >
+                {history && <HistoryCard data={history} />}
+              </PivotItem>
+              <PivotItem
+                headerText="Contact"
+                itemIcon="Phone"
+                itemKey="Contact"
+              >
+                {client && (
+                  <ContactPivot
+                    RefreshList={refreshDetails}
+                    data={client.contact_Details}
+                  />
+                )}
+              </PivotItem>
+            </Pivot>
+          </Stack>
         </Stack>
       )}
+      {openForm && client && <ClientUpdateForm OpenForm={setopenForm}  isFormOpen={openForm} value={client} RefreshList={refreshDetails}/>}
     </Stack>
   );
 };

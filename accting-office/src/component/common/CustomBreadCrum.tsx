@@ -17,10 +17,15 @@ const CustomBreadCrum: FC<CustomBreadCrumProps> = ({ items }) => {
       items={processedItems}
       styles={{
         root: {
-          fontSize: 12,
           borderBottom: "1px solid rgba(0, 0, 0, 0.1)",
           paddingBottom: 4,
         },
+        itemLink:{
+        
+          fontSize: 14,
+          color:"rgb(0, 120, 212)",
+      },
+      
         
       }}
     />

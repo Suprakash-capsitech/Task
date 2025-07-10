@@ -24,7 +24,7 @@ import Custominput from "./common/Custominput";
 import CustomSelect from "./common/CustomSelect";
 import type { CustomFormprops } from "../types/props";
 import { createRef, useEffect, useState } from "react";
-import type {  LeadsInterface } from "../types";
+import type { LeadsInterface } from "../types";
 import { countries } from "../utils/ListsOptions";
 const ClientSchema = object({
   name: string().required("Name is required"),
@@ -137,6 +137,7 @@ const CreateClientForm = ({
         if (response.data) {
           OpenForm(false);
           RefreshList();
+          resetForm();
         }
       } catch (error) {
         console.log(error);
@@ -151,6 +152,7 @@ const CreateClientForm = ({
     handleChange,
     handleSubmit,
     setFieldValue,
+    resetForm,
   } = formik;
   return (
     <Panel
@@ -161,10 +163,19 @@ const CreateClientForm = ({
       closeButtonAriaLabel="Close"
       onRenderFooterContent={() => (
         <Stack horizontal tokens={{ childrenGap: 12 }}>
-          <PrimaryButton type="submit" form="ClientForm">
+          <PrimaryButton
+            iconProps={{ iconName: "Save" }}
+            type="submit"
+            form="ClientForm"
+          >
             Save
           </PrimaryButton>
-          <DefaultButton onClick={() => OpenForm(false)}>Cancel</DefaultButton>
+          <DefaultButton
+            iconProps={{ iconName: "cancel" }}
+            onClick={() => OpenForm(false)}
+          >
+            Cancel
+          </DefaultButton>
         </Stack>
       )}
       isFooterAtBottom={true}

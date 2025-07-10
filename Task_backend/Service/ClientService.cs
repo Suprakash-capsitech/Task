@@ -1,4 +1,5 @@
 ﻿using FluentValidation.Results;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using System.Net;
 using Task_backend.Data;
@@ -65,13 +66,25 @@ namespace Task_backend.Service
             }
         }
 
-        public async Task<IEnumerable<ClientsModel>> GetAllClients(string userId, string role)
+        public async Task<IEnumerable<ClientsModel>> GetAllClients(string userId, string role, string? search)
         {
             try
             {
                 if (role == "admin")
                 {
-                    var clientList = await _dbContext.Clients.Find(x => true).ToListAsync();
+                    var filter = Builders<ClientsModel>.Filter.Empty;
+
+                    if (!string.IsNullOrEmpty(search))
+                    {
+                        var searchFilter = Builders<ClientsModel>.Filter.Or(
+                            Builders<ClientsModel>.Filter.Regex("name", new BsonRegularExpression(search, "i")),
+                            Builders<ClientsModel>.Filter.Regex("email", new BsonRegularExpression(search, "i"))
+                        );
+
+                        filter = Builders<ClientsModel>.Filter.And(filter, searchFilter);
+                    }
+
+                    var clientList = await _dbContext.Clients.Find(filter).ToListAsync();
                     var userIds = clientList.Select(l => l.Created_By_Id).Distinct().ToList();
                     var allContactIds = clientList
                                             .Where(c => c.Contact_Ids != null)
@@ -114,7 +127,18 @@ namespace Task_backend.Service
                 }
                 else
                 {
-                    var clientList = await _dbContext.Clients.Find(x => x.Created_By_Id == userId).ToListAsync();
+                    var filter = Builders<ClientsModel>.Filter.Eq(x => x.Created_By_Id, userId);
+
+                    if (!string.IsNullOrEmpty(search))
+                    {
+                        var searchFilter = Builders<ClientsModel>.Filter.Or(
+                            Builders<ClientsModel>.Filter.Regex("name", new BsonRegularExpression(search, "i")),
+                            Builders<ClientsModel>.Filter.Regex("email", new BsonRegularExpression(search, "i"))
+                        );
+
+                        filter = Builders<ClientsModel>.Filter.And(filter, searchFilter);
+                    }
+                    var clientList = await _dbContext.Clients.Find(filter).ToListAsync();
                     var userIds = clientList.Select(l => l.Created_By_Id).Distinct().ToList();
                     var allContactIds = clientList
                                             .Where(c => c.Contact_Ids != null)
@@ -182,7 +206,34 @@ namespace Task_backend.Service
             }
         }
 
-        public async  Task<ClientsModel> UnLinkLead(string Id, string lead_id)
+        public async Task<ClientsModel> LinkLead(string Id, string lead_id)
+        {
+            try
+            {
+                ClientsModel client = await _dbContext.Clients.Find(x => x.Id == Id).FirstOrDefaultAsync();
+
+                var updateDefination = Builders<ClientsModel>.Update.Push(x => x.Contact_Ids, lead_id);
+                var options = new FindOneAndUpdateOptions<ClientsModel>
+                {
+                    ReturnDocument = ReturnDocument.After
+                };
+                client = await _dbContext.Clients.FindOneAndUpdateAsync(x => x.Id == Id, updateDefination, options);
+                UsersModel user = await _dbContext.Users.Find(x => x.Id == client.Created_By_Id).FirstOrDefaultAsync();
+                client.Created_By = new UserMaskedResponse { Id = user.Id, Name = user.Name };
+                var filter = Builders<LeadsModel>.Filter.In(x => x.Id, client.Contact_Ids);
+                List<LeadsModel> contactList = await _dbContext.Leads.Find(filter).ToListAsync();
+                LeadsModel[] contacts = [.. contactList];
+                client.Contact_Details = contacts;
+                return client;
+            }
+            catch (Exception)
+            {
+
+                throw new Exception("Database Error");
+            }
+        }
+
+        public async Task<ClientsModel> UnLinkLead(string Id, string lead_id)
         {
             try
             {
@@ -193,7 +244,7 @@ namespace Task_backend.Service
                 {
                     ReturnDocument = ReturnDocument.After
                 };
-                client = await  _dbContext.Clients.FindOneAndUpdateAsync(x => x.Id == Id, updateDefination, options);
+                client = await _dbContext.Clients.FindOneAndUpdateAsync(x => x.Id == Id, updateDefination, options);
                 UsersModel user = await _dbContext.Users.Find(x => x.Id == client.Created_By_Id).FirstOrDefaultAsync();
                 client.Created_By = new UserMaskedResponse { Id = user.Id, Name = user.Name };
                 var filter = Builders<LeadsModel>.Filter.In(x => x.Id, client.Contact_Ids);

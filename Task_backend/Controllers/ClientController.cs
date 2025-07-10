@@ -49,9 +49,16 @@ namespace Task_backend.Controllers
                         await _historyService.CreatedHistory(historyRequest);
                         if (Req.Contact_Ids?.Length != 0)
                         {
+                            foreach (var lead in newClient.Contact_Details)
+                            {
 
-                            CreatedHistoryDto LinkRequest = new() { History_of = newClient.Id, Performed_By_Id = userId, Task_Performed = "Linked", Description = $"Contacts Linked by {newClient.Created_By.Name}" };
-                            await _historyService.CreatedHistory(LinkRequest);
+                                CreatedHistoryDto LinkRequest = new() { History_of = newClient.Id, Performed_By_Id = userId, Task_Performed = "Linked", Description = $"Contact {lead.Name} was Linked to Client" };
+
+
+                                await _historyService.CreatedHistory(LinkRequest);
+                                CreatedHistoryDto LeadLinkRequest = new() { History_of = lead.Id, Performed_By_Id = userId, Task_Performed = "Linked", Description = $"{lead.Name} was linked to Client {newClient.Name} " };
+                                await _historyService.CreatedHistory(LeadLinkRequest);
+                            }
                         }
                         return Ok(newClient);
                     }
@@ -80,7 +87,7 @@ namespace Task_backend.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GetAllClients()
+        public async Task<IActionResult> GetAllClients([FromQuery]string? search)
         {
             try
             {
@@ -90,7 +97,7 @@ namespace Task_backend.Controllers
                 {
 
 
-                    var newClient = await _clientService.GetAllClients(userId, role);
+                    var newClient = await _clientService.GetAllClients(userId, role , search);
                     return Ok(newClient);
                 }
                 else
@@ -231,8 +238,50 @@ namespace Task_backend.Controllers
                 if (!String.IsNullOrEmpty(userId))
                 {
 
-                    CreatedHistoryDto LinkRequest = new() { History_of = client.Id, Performed_By_Id = userId, Task_Performed = "Unlinked", Description = $"Contact was Unlinked " };
+
+                    CreatedHistoryDto LinkRequest = new() { History_of = client.Id, Performed_By_Id = userId, Task_Performed = "Unlinked", Description = $"Contact was Unlinked from client " };
+                    CreatedHistoryDto LeadUnlinkRequest = new() { History_of = lead_id, Performed_By_Id = userId, Task_Performed = "Unlinked", Description = $"lead was Unlinked from client {client.Name}" };
                     await _historyService.CreatedHistory(LinkRequest);
+                    await _historyService.CreatedHistory(LeadUnlinkRequest);
+
+                }
+                return Ok(client);
+            }
+            catch (Exception)
+            {
+
+                return StatusCode(500);
+            }
+        }
+        [HttpPut("linklead/{Id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> Linklead(string Id, string lead_id)
+        {
+            try
+            {
+
+
+
+                var client = await _clientService.LinkLead(Id, lead_id);
+
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!String.IsNullOrEmpty(userId))
+                {
+                    foreach (var lead in client.Contact_Details)
+                    {
+                        if (lead.Id == lead_id)
+                        {
+
+                            CreatedHistoryDto LinkRequest = new() { History_of = client.Id, Performed_By_Id = userId, Task_Performed = "Linked", Description = $"Contact {lead.Name} was linked to Client " };
+                            await _historyService.CreatedHistory(LinkRequest);
+                            CreatedHistoryDto LinkleadRequest = new() { History_of = lead_id, Performed_By_Id = userId, Task_Performed = "Linked", Description = $"{lead.Name} was linked to Client {client.Name}" };
+                            await _historyService.CreatedHistory(LinkleadRequest);
+                        }
+                    }
+
                 }
                 return Ok(client);
             }

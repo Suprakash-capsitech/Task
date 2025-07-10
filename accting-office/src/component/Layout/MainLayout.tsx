@@ -1,4 +1,5 @@
-import SideBar from "../common/SideBar";
+
+import SideBar from "./SideBar";
 import ViewLayout from "./ViewLayout";
 
 const MainLayout = () => {

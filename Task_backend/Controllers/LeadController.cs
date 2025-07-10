@@ -13,9 +13,10 @@ namespace Task_backend.Controllers
     [Route("api/[controller]/")]
     [ApiController]
     [Authorize]
-    public class LeadController(ILeadService leadService, IHistoryService historyService) : Controller
+    public class LeadController(ILeadService leadService, IClientService clientService, IHistoryService historyService) : Controller
     {
         public readonly ILeadService _leadService = leadService;
+        public readonly IClientService _clientService = clientService;
         public readonly IHistoryService _historyService = historyService;
 
         [HttpPost("createlead")]
@@ -35,8 +36,17 @@ namespace Task_backend.Controllers
                     if (!string.IsNullOrEmpty(userId))
                     {
                         var newLead = await _leadService.CreateLead(Req, userId);
-                        CreatedHistoryDto historyRequest = new() { History_of = newLead.Id, Performed_By_Id = userId, Task_Performed = "Created", Description = $"New lead was created" };
+                        CreatedHistoryDto historyRequest = new() { History_of = newLead.Id, Performed_By_Id = userId, Task_Performed = "Created", Description = $"New {newLead.Type} was created" };
                         await _historyService.CreatedHistory(historyRequest);
+                        if (!String.IsNullOrEmpty(Req.Client_id))
+                        {
+                            var client = await _clientService.LinkLead(Req.Client_id, newLead.Id);
+                            CreatedHistoryDto Linkedhistory = new() { History_of = Req.Client_id, Performed_By_Id = userId, Task_Performed = "Linked", Description = $"{newLead.Name} was Linked to client  " };
+                            await _historyService.CreatedHistory(Linkedhistory);
+                            CreatedHistoryDto LeadLinkRequest = new() { History_of = newLead.Id, Performed_By_Id = userId, Task_Performed = "Linked", Description = $"{newLead.Name} was Linked to client {client.Name}" };
+                            await _historyService.CreatedHistory(LeadLinkRequest);
+                        }
+
                         return Ok(newLead);
                     }
                     else
@@ -77,7 +87,7 @@ namespace Task_backend.Controllers
                 if (!String.IsNullOrEmpty(role) && !String.IsNullOrEmpty(userId))
                 {
 
-                    var contactList = await _leadService.GetAll( role, userId);
+                    var contactList = await _leadService.GetAll(role, userId);
                     return Ok(contactList);
                 }
                 else
@@ -97,7 +107,7 @@ namespace Task_backend.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<LeadsModel>> GetLeads()
+        public async Task<ActionResult<LeadsModel>> GetLeads([FromQuery] string? search)
         {
             try
             {
@@ -108,7 +118,7 @@ namespace Task_backend.Controllers
                 if (!String.IsNullOrEmpty(role) && !String.IsNullOrEmpty(userId))
                 {
 
-                    var leadList = await _leadService.GetLeads(type, role, userId);
+                    var leadList = await _leadService.GetLeads(type, role, userId, search);
                     return Ok(leadList);
                 }
                 else
@@ -131,7 +141,7 @@ namespace Task_backend.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<LeadsModel>> GetContacts()
+        public async Task<ActionResult<LeadsModel>> GetContacts([FromQuery] string? search)
         {
             try
             {
@@ -141,7 +151,7 @@ namespace Task_backend.Controllers
                 if (!String.IsNullOrEmpty(role) && !String.IsNullOrEmpty(userId))
                 {
 
-                    var contactList = await _leadService.GetLeads(type, role, userId);
+                    var contactList = await _leadService.GetLeads(type, role, userId , search);
                     return Ok(contactList);
                 }
                 else

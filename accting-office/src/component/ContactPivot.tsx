@@ -2,35 +2,60 @@ import {
   DefaultButton,
   DetailsList,
   DetailsListLayoutMode,
+  Dropdown,
   IconButton,
   SelectionMode,
   Stack,
   Text,
   type IColumn,
+  type IDropdownOption,
 } from "@fluentui/react";
 import type { LeadsInterface } from "../types";
 import { useEffect, useState, type FC } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { isAxiosError } from "axios";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
+import CustomCommandBar from "./common/CustomCommandBar";
+import LinkContactForm from "./LinkContactForm";
 interface ContactPivotProps {
   data: LeadsInterface[];
+  RefreshList: () => void;
 }
-const ContactPivot: FC<ContactPivotProps> = ({ data }) => {
+const ContactPivot: FC<ContactPivotProps> = ({ data, RefreshList }) => {
   const [columns, setColumns] = useState<IColumn[]>([]);
-  const [currentPage, setCurrentPage] = useState(0);
-
+  const [currentPage, setCurrentPage] = useState<number>(0);
+  const [itemperpage, setItemperpage] = useState<number>(5);
+  const [openForm, setopenForm] = useState<boolean>(false);
+  const [search, setSearch] = useState<string>("");
+  const [filteredContact, setfilteredContact] = useState<LeadsInterface[]>([]);
   const location = useLocation();
   const path = location.pathname.split("/")[2];
   const navigate = useNavigate();
-  const ITEMS_PER_PAGE = 5;
-  const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE);
+  const ITEMS_PER_PAGE = itemperpage;
+  const totalPages = Math.ceil(filteredContact.length / ITEMS_PER_PAGE);
   const startIndex = currentPage * ITEMS_PER_PAGE;
-  const paginatedItems = data.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const paginatedItems = filteredContact.slice(
+    startIndex,
+    startIndex + ITEMS_PER_PAGE
+  );
+  const pageoption: IDropdownOption[] = [
+    { key: 5, text: "5" },
+    { key: 10, text: "10" },
+    { key: 15, text: "15" },
+    { key: 20, text: "20" },
+  ];
   const handlePrevious = () => setCurrentPage((prev) => Math.max(prev - 1, 0));
   const handleNext = () =>
     setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1));
-
+  const HandleSearch = () => {
+    setfilteredContact(
+      data.filter(
+        (item) =>
+          item.name.toLocaleLowerCase().includes(search.toLocaleLowerCase()) ||
+          item.email.toLocaleLowerCase().includes(search.toLocaleLowerCase())
+      )
+    );
+  };
   const axiosPrivate = useAxiosPrivate();
   useEffect(() => {
     const initialColumns: IColumn[] = [
@@ -141,8 +166,8 @@ const ContactPivot: FC<ContactPivotProps> = ({ data }) => {
           <Stack horizontal tokens={{ childrenGap: 8 }}>
             <DefaultButton
               iconProps={{ iconName: "Removelink" }}
-              title="Delete"
-              ariaLabel="Delete"
+              title="Unlink"
+              ariaLabel="Unlink"
               styles={{ root: { minWidth: 32, padding: 4, border: 0 } }}
               onClick={async () => {
                 try {
@@ -150,7 +175,7 @@ const ContactPivot: FC<ContactPivotProps> = ({ data }) => {
                     `/Client/unlinklead/${path}?lead_id=${item.id}`
                   );
                   if (response) {
-                    console.log(response.data);
+                    RefreshList();
                   }
                 } catch (error: unknown) {
                   if (isAxiosError(error)) {
@@ -166,11 +191,22 @@ const ContactPivot: FC<ContactPivotProps> = ({ data }) => {
       },
     ];
     setColumns(initialColumns);
-  }, [startIndex]);
-
+  }, [itemperpage, startIndex]);
+  useEffect(() => {
+    setfilteredContact(data);
+  }, []);
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [itemperpage]);
   return (
     <Stack>
-      <Stack tokens={{ childrenGap: 10, padding: 5 }}>
+      <CustomCommandBar
+        handleSubmit={HandleSearch}
+        SetSearch={setSearch}
+        RefreshList={RefreshList}
+        OpenForm={setopenForm}
+      />
+      <Stack tokens={{ childrenGap: 10 }}>
         <DetailsList
           items={paginatedItems}
           columns={columns}
@@ -208,53 +244,85 @@ const ContactPivot: FC<ContactPivotProps> = ({ data }) => {
             });
           }}
         />
-        {data.length === 0 ? (
+        {filteredContact.length === 0 ? (
           <></>
         ) : (
           <Stack
             horizontal
-            horizontalAlign="end"
-            tokens={{ childrenGap: 12 }}
+            horizontalAlign="space-between"
+            tokens={{ childrenGap: 12, padding: 5 }}
             verticalAlign="center"
           >
-            <IconButton
-              iconProps={{ iconName: "ChevronLeft" }}
-              title="Previous"
-              ariaLabel="Previous"
-              onClick={handlePrevious}
-              disabled={currentPage === 0}
-            />
+            <Stack>
+              <Dropdown
+                selectedKey={itemperpage}
+                onChange={(_event, option) => {
+                  if (option) {
+                    setItemperpage(option.key as number);
+                  }
+                }}
+                options={pageoption}
+                styles={{
+                  title: {
+                    border: "1px solid rgba(0,0,0,.2)",
 
-            <Stack horizontal verticalAlign="end" tokens={{ childrenGap: 8 }}>
-              {Array.from({ length: totalPages }, (_, i) => (
-                <Text
-                  key={i}
-                  onClick={() => setCurrentPage(i)}
-                  style={{
-                    cursor: "pointer",
-                    fontWeight: currentPage === i ? "bold" : "normal",
-                    color: currentPage === i ? "#0078D4" : "#333",
-                    padding: "4px 6px",
-                    borderRadius: 4,
-                    backgroundColor:
-                      currentPage === i ? "#e5f1fb" : "transparent",
-                  }}
-                >
-                  {i + 1}
-                </Text>
-              ))}
+                    borderRadius: 6,
+                  },
+                  callout: {
+                    borderRadius: 5,
+                  },
+                  dropdown: {
+                    border: "none",
+                    outline: "none",
+                  },
+                }}
+              />
             </Stack>
+            <Stack horizontal tokens={{ childrenGap: 8 }}>
+              <IconButton
+                iconProps={{ iconName: "ChevronLeft" }}
+                title="Previous"
+                ariaLabel="Previous"
+                onClick={handlePrevious}
+                disabled={currentPage === 0}
+              />
 
-            <IconButton
-              iconProps={{ iconName: "ChevronRight" }}
-              title="Next"
-              ariaLabel="Next"
-              onClick={handleNext}
-              disabled={currentPage >= totalPages - 1}
-            />
+              <Stack horizontal verticalAlign="end" tokens={{ childrenGap: 8 }}>
+                {Array.from({ length: totalPages }, (_, i) => (
+                  <Text
+                    key={i}
+                    onClick={() => setCurrentPage(i)}
+                    style={{
+                      cursor: "pointer",
+                      fontWeight: currentPage === i ? "bold" : "normal",
+                      color: currentPage === i ? "#0078D4" : "#333",
+                      padding: "4px 6px",
+                      borderRadius: 4,
+                      backgroundColor:
+                        currentPage === i ? "#e5f1fb" : "transparent",
+                    }}
+                  >
+                    {i + 1}
+                  </Text>
+                ))}
+              </Stack>
+
+              <IconButton
+                iconProps={{ iconName: "ChevronRight" }}
+                title="Next"
+                ariaLabel="Next"
+                onClick={handleNext}
+                disabled={currentPage >= totalPages - 1}
+              />
+            </Stack>
           </Stack>
         )}
       </Stack>
+      <LinkContactForm
+        RefreshList={RefreshList}
+        isFormOpen={openForm}
+        OpenForm={setopenForm}
+      />
     </Stack>
   );
 };

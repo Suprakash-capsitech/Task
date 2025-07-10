@@ -4,12 +4,14 @@ import {
   DefaultButton,
   DetailsList,
   DetailsListLayoutMode,
+  Dropdown,
   IconButton,
   SelectionMode,
   Spinner,
   Stack,
   Text,
   type IColumn,
+  type IDropdownOption,
 } from "@fluentui/react";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import type { ClientInterface } from "../types";
@@ -20,6 +22,7 @@ import ClientUpdateForm from "../component/ClientUpdateForm";
 
 const Clients = () => {
   const [isOpen, setisOpen] = useState<boolean>(false);
+  const [search, setSearch] = useState<string>("");
   const [isloading, setisloading] = useState<boolean>(false);
   const [clientlist, setclientlist] = useState<ClientInterface[]>([]);
   const [openModal, setopenModal] = useState<ClientInterface>();
@@ -27,16 +30,21 @@ const Clients = () => {
   const [columns, setColumns] = useState<IColumn[]>([]);
   const axiosPrivate = useAxiosPrivate();
   const navigate = useNavigate();
-  const ITEMS_PER_PAGE = 5;
+
+  const [itemperpage, setItemperpage] = useState<number>(5);
+  const pageoption: IDropdownOption[] = [
+    { key: 5, text: "5" },
+    { key: 10, text: "10" },
+    { key: 15, text: "15" },
+    { key: 20, text: "20" },
+  ];
+  const ITEMS_PER_PAGE = itemperpage;
   const totalPages = Math.ceil(clientlist.length / ITEMS_PER_PAGE);
   const startIndex = currentPage * ITEMS_PER_PAGE;
   const paginatedItems = clientlist.slice(
     startIndex,
     startIndex + ITEMS_PER_PAGE
   );
-  const refresh = () => {
-    GetClients();
-  };
 
   const BreadCrumitem = [
     { key: "home", text: "Home", href: "/" },
@@ -45,7 +53,11 @@ const Clients = () => {
   const GetClients = async () => {
     setisloading(true);
     try {
-      const response = await axiosPrivate("/Client/clients");
+      const response = await axiosPrivate("/Client/clients", {
+        params: {
+          search: search,
+        },
+      });
 
       if (response.data) {
         setclientlist(response.data);
@@ -57,7 +69,12 @@ const Clients = () => {
       setisloading(false);
     }
   };
-
+  const refresh = () => {
+    GetClients();
+  };
+  const handleSearch = () => {
+    GetClients();
+  };
   useEffect(() => {
     GetClients();
   }, []);
@@ -72,7 +89,6 @@ const Clients = () => {
         isResizable: false,
         isSorted: false,
         isSortedDescending: false,
-        onColumnClick: onColumnClick,
         onRender: (_item: ClientInterface, index?: number) =>
           index !== undefined ? startIndex + index + 1 : "",
       },
@@ -84,7 +100,6 @@ const Clients = () => {
         isResizable: true,
         isSorted: false,
         isSortedDescending: false,
-        onColumnClick: onColumnClick,
         onRender: (item: ClientInterface) => (
           <Text
             style={{
@@ -105,7 +120,6 @@ const Clients = () => {
         minWidth: 150,
         isResizable: true,
         isSorted: false,
-        onColumnClick: onColumnClick,
       },
       {
         key: "type",
@@ -138,7 +152,7 @@ const Clients = () => {
               textDecoration: "underline",
             }}
           >
-            {item?.contact_Details ?  item?.contact_Details[0]?.name: ""}
+            {item?.contact_Details ? item?.contact_Details[0]?.name : ""}
           </Text>
         ),
       },
@@ -156,7 +170,6 @@ const Clients = () => {
         fieldName: "createdAt",
         minWidth: 120,
         isResizable: true,
-        // onColumnClick: onColumnClick,
         onRender: (item: ClientInterface) =>
           new Date(item.createdAt).toLocaleDateString("en-GB", {
             day: "2-digit",
@@ -173,13 +186,13 @@ const Clients = () => {
         isResizable: true,
         onRender: (item: ClientInterface) => (
           <Stack horizontal tokens={{ childrenGap: 8 }}>
-            <DefaultButton
+            {/* <DefaultButton
               iconProps={{ iconName: "Edit" }}
               title="Edit"
               ariaLabel="Edit"
               styles={{ root: { minWidth: 32, padding: 4, border: 0 } }}
               onClick={() => setopenModal(item)}
-            />
+            /> */}
             <DefaultButton
               iconProps={{ iconName: "Delete" }}
               title="Delete"
@@ -203,36 +216,11 @@ const Clients = () => {
       },
     ];
     setColumns(initialColumns);
-  }, [startIndex]);
-  const onColumnClick = (
-    _ev?: React.MouseEvent<HTMLElement>,
-    column?: IColumn
-  ): void => {
-    if (!column) return;
+  }, [startIndex, itemperpage]);
 
-    const isSortedDescending = !column.isSortedDescending;
-    const newColumns = columns.map((col) => ({
-      ...col,
-      isSorted: col.key === column.key,
-      isSortedDescending: col.key === column.key ? isSortedDescending : false,
-    }));
-
-    const sortedItems = [...clientlist].sort((a, b) => {
-      const aVal = (a as any)[column.fieldName as string];
-      const bVal = (b as any)[column.fieldName as string];
-
-      if (aVal === undefined) return 1;
-      if (bVal === undefined) return -1;
-
-      return isSortedDescending
-        ? bVal.toString().localeCompare(aVal.toString())
-        : aVal.toString().localeCompare(bVal.toString());
-    });
-
-    setclientlist(sortedItems);
-    setColumns(newColumns);
+  useEffect(() => {
     setCurrentPage(0);
-  };
+  }, [itemperpage]);
   const handlePrevious = () => setCurrentPage((prev) => Math.max(prev - 1, 0));
   const handleNext = () =>
     setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1));
@@ -240,7 +228,12 @@ const Clients = () => {
   return (
     <Stack>
       <CustomBreadCrum items={BreadCrumitem} />
-      <CustomCommandBar OpenForm={setisOpen} RefreshList={refresh} />
+      <CustomCommandBar
+        handleSubmit={handleSearch}
+        SetSearch={setSearch}
+        OpenForm={setisOpen}
+        RefreshList={refresh}
+      />
 
       <CreateClientForm
         isFormOpen={isOpen}
@@ -277,6 +270,14 @@ const Clients = () => {
                   setColumns(newColumns);
                 },
               }}
+              styles={{
+                root: {
+                  fontWeight: "thin",
+                },
+                headerWrapper: {
+                  fontWeight: "thin",
+                },
+              }}
               onRenderRow={(props, defaultRender) => {
                 if (!props || !defaultRender) return null;
 
@@ -301,51 +302,78 @@ const Clients = () => {
               <></>
             ) : (
               <Stack
-                horizontal
-                horizontalAlign="end"
-                tokens={{ childrenGap: 12 }}
-                verticalAlign="center"
-              >
-                <IconButton
-                  iconProps={{ iconName: "ChevronLeft" }}
-                  title="Previous"
-                  ariaLabel="Previous"
-                  onClick={handlePrevious}
-                  disabled={currentPage === 0}
-                />
-
-                <Stack
-                  horizontal
-                  verticalAlign="end"
-                  tokens={{ childrenGap: 8 }}
-                >
-                  {Array.from({ length: totalPages }, (_, i) => (
-                    <Text
-                      key={i}
-                      onClick={() => setCurrentPage(i)}
-                      style={{
-                        cursor: "pointer",
-                        fontWeight: currentPage === i ? "bold" : "normal",
-                        color: currentPage === i ? "#0078D4" : "#333",
-                        padding: "4px 6px",
-                        borderRadius: 4,
-                        backgroundColor:
-                          currentPage === i ? "#e5f1fb" : "transparent",
-                      }}
-                    >
-                      {i + 1}
-                    </Text>
-                  ))}
-                </Stack>
-
-                <IconButton
-                  iconProps={{ iconName: "ChevronRight" }}
-                  title="Next"
-                  ariaLabel="Next"
-                  onClick={handleNext}
-                  disabled={currentPage >= totalPages - 1}
-                />
-              </Stack>
+                                horizontal
+                                horizontalAlign="space-between"
+                                tokens={{ childrenGap: 12, padding: 5 }}
+                                verticalAlign="center"
+                              >
+                                <Stack>
+                                  <Dropdown
+                                    selectedKey={itemperpage}
+                                    onChange={(_event, option) => {
+                                      if (option) {
+                                        setItemperpage(option.key as number);
+                                      }
+                                    }}
+                                    options={pageoption}
+                                    styles={{
+                                      title: {
+                                        border: "1px solid rgba(0,0,0,.2)",
+              
+                                        borderRadius: 6,
+                                      },
+                                      callout: {
+                                        borderRadius: 5,
+                                      },
+                                      dropdown: {
+                                        border: "none",
+                                        outline: "none",
+                                      },
+                                    }}
+                                  />
+                                </Stack>
+                                <Stack horizontal tokens={{ childrenGap: 8 }}>
+                                  <IconButton
+                                    iconProps={{ iconName: "ChevronLeft" }}
+                                    title="Previous"
+                                    ariaLabel="Previous"
+                                    onClick={handlePrevious}
+                                    disabled={currentPage === 0}
+                                  />
+              
+                                  <Stack
+                                    horizontal
+                                    verticalAlign="end"
+                                    tokens={{ childrenGap: 8 }}
+                                  >
+                                    {Array.from({ length: totalPages }, (_, i) => (
+                                      <Text
+                                        key={i}
+                                        onClick={() => setCurrentPage(i)}
+                                        style={{
+                                          cursor: "pointer",
+                                          fontWeight: currentPage === i ? "bold" : "normal",
+                                          color: currentPage === i ? "#0078D4" : "#333",
+                                          padding: "4px 6px",
+                                          borderRadius: 4,
+                                          backgroundColor:
+                                            currentPage === i ? "#e5f1fb" : "transparent",
+                                        }}
+                                      >
+                                        {i + 1}
+                                      </Text>
+                                    ))}
+                                  </Stack>
+              
+                                  <IconButton
+                                    iconProps={{ iconName: "ChevronRight" }}
+                                    title="Next"
+                                    ariaLabel="Next"
+                                    onClick={handleNext}
+                                    disabled={currentPage >= totalPages - 1}
+                                  />
+                                </Stack>
+                              </Stack>
             )}
           </Stack>
         )}

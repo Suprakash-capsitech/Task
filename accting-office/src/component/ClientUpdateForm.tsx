@@ -120,9 +120,9 @@ const ClientUpdateForm = ({
         street: value.address.street,
         area: value.address.area,
         city: value.address.city,
-        county: value.address.country,
+        county: value.address.county,
         pincode: value.address.pincode,
-        country: value.address.county,
+        country: value.address.country,
       },
       contact_Ids: value.contact_Ids,
     },
@@ -136,6 +136,7 @@ const ClientUpdateForm = ({
         if (response.data) {
           OpenForm(undefined);
           RefreshList();
+          resetForm();
         }
       } catch (error) {
         console.log(error);
@@ -151,7 +152,7 @@ const ClientUpdateForm = ({
     errors,
     dirty,
     setFieldValue,
-    isValid,
+    isValid,resetForm
   } = formik;
   return (
     <Panel
@@ -164,13 +165,19 @@ const ClientUpdateForm = ({
       onRenderFooterContent={() => (
         <Stack horizontal tokens={{ childrenGap: 12 }}>
           <PrimaryButton
+            iconProps={{ iconName: "Save" }}
             type="submit"
             form="ClientUpdateForm"
             disabled={!dirty || !isValid}
           >
             Save
           </PrimaryButton>
-          <DefaultButton onClick={() => OpenForm(false)}>Cancel</DefaultButton>
+          <DefaultButton
+            iconProps={{ iconName: "cancel" }}
+            onClick={() => OpenForm(false)}
+          >
+            Cancel
+          </DefaultButton>
         </Stack>
       )}
       isFooterAtBottom={true}
@@ -230,178 +237,180 @@ const ClientUpdateForm = ({
             />
             <Text className="error">{touched.email && errors.email}</Text>
           </Stack>
-          <Label>Address:</Label>
-          <Stack style={{ width: "100%" }}>
-            <Stack
-              horizontal
-              tokens={{ childrenGap: 8 }}
-              style={{ width: "100%" }}
-            >
-              <TextField
-                name="address.street"
-                type="text"
-                placeholder="street"
-                value={values.address.street}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                styles={{
-                  fieldGroup: {
-                    padding: 5,
-                    borderRadius: 5,
-                    outline: "none",
-                    border: "1px solid rgba(0,0,0,.2)",
-                  },
-                  root: {
-                    width: "50%",
-                  },
-                }}
-              ></TextField>
-              <TextField
-                name="address.area"
-                type="text"
-                placeholder="area"
-                value={values.address.area}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                styles={{
-                  fieldGroup: {
-                    padding: 5,
-                    borderRadius: 5,
-                    outline: "none",
-                    border: "1px solid rgba(0,0,0,.2)",
-                  },
-                  root: {
-                    width: "50%",
-                  },
-                }}
-              ></TextField>
+          <Stack style={{ width: "100%" }} tokens={{ childrenGap: 10 }}>
+            <Label>Address:</Label>
+            <Stack style={{ width: "100%" }} tokens={{ childrenGap: 10 }}>
+              <Stack
+                horizontal
+                tokens={{ childrenGap: 8 }}
+                style={{ width: "100%" }}
+              >
+                <TextField
+                  name="address.street"
+                  type="text"
+                  placeholder="street"
+                  value={values.address.street}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  styles={{
+                    fieldGroup: {
+                      padding: 5,
+                      borderRadius: 5,
+                      outline: "none",
+                      border: "1px solid rgba(0,0,0,.2)",
+                    },
+                    root: {
+                      width: "50%",
+                    },
+                  }}
+                ></TextField>
+                <TextField
+                  name="address.area"
+                  type="text"
+                  placeholder="area"
+                  value={values.address.area}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  styles={{
+                    fieldGroup: {
+                      padding: 5,
+                      borderRadius: 5,
+                      outline: "none",
+                      border: "1px solid rgba(0,0,0,.2)",
+                    },
+                    root: {
+                      width: "50%",
+                    },
+                  }}
+                ></TextField>
+              </Stack>
             </Stack>
-          </Stack>
-          <Stack style={{ width: "100%" }}>
-            <Stack
-              horizontal
-              tokens={{ childrenGap: 8 }}
-              style={{ width: "100%" }}
-            >
-              <TextField
-                name="address.city"
-                type="text"
-                placeholder="City"
-                value={values.address.city}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                styles={{
-                  fieldGroup: {
-                    padding: 5,
-                    borderRadius: 5,
-                    outline: "none",
-                    border: "1px solid rgba(0,0,0,.2)",
-                  },
-                  root: {
-                    width: "50%",
-                  },
-                }}
-              ></TextField>
-              <TextField
-                name="address.county"
-                type="text"
-                placeholder="county"
-                value={values.address.county}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                styles={{
-                  fieldGroup: {
-                    padding: 5,
-                    borderRadius: 5,
-                    outline: "none",
-                    border: "1px solid rgba(0,0,0,.2)",
-                  },
-                  root: {
-                    width: "50%",
-                  },
-                }}
-              ></TextField>
+            <Stack style={{ width: "100%" }}>
+              <Stack
+                horizontal
+                tokens={{ childrenGap: 8 }}
+                style={{ width: "100%" }}
+              >
+                <TextField
+                  name="address.city"
+                  type="text"
+                  placeholder="City"
+                  value={values.address.city}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  styles={{
+                    fieldGroup: {
+                      padding: 5,
+                      borderRadius: 5,
+                      outline: "none",
+                      border: "1px solid rgba(0,0,0,.2)",
+                    },
+                    root: {
+                      width: "50%",
+                    },
+                  }}
+                ></TextField>
+                <TextField
+                  name="address.county"
+                  type="text"
+                  placeholder="county"
+                  value={values.address.county}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  styles={{
+                    fieldGroup: {
+                      padding: 5,
+                      borderRadius: 5,
+                      outline: "none",
+                      border: "1px solid rgba(0,0,0,.2)",
+                    },
+                    root: {
+                      width: "50%",
+                    },
+                  }}
+                ></TextField>
+              </Stack>
             </Stack>
-          </Stack>
-          <Stack style={{ width: "100%" }}>
-            <Stack
-              horizontal
-              tokens={{ childrenGap: 8 }}
-              style={{ width: "100%" }}
-            >
-              <TextField
-                name="address.pincode"
-                type="text"
-                placeholder="Postcode"
-                value={values.address.pincode}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                styles={{
-                  fieldGroup: {
-                    padding: 5,
-                    borderRadius: 5,
-                    outline: "none",
-                    border: "1px solid rgba(0,0,0,.2)",
-                  },
-                  root: {
-                    width: "50%",
-                  },
-                }}
-              ></TextField>
-              <Dropdown
-                placeholder="Select a country"
-                selectedKey={values.address.country}
-                onChange={(_, option) =>
-                  setFieldValue("address.country", option?.key)
-                }
+            <Stack style={{ width: "100%" }}>
+              <Stack
+                horizontal
+                tokens={{ childrenGap: 8 }}
+                style={{ width: "100%" }}
+              >
+                <TextField
+                  name="address.pincode"
+                  type="text"
+                  placeholder="Postcode"
+                  value={values.address.pincode}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  styles={{
+                    fieldGroup: {
+                      padding: 5,
+                      borderRadius: 5,
+                      outline: "none",
+                      border: "1px solid rgba(0,0,0,.2)",
+                    },
+                    root: {
+                      width: "50%",
+                    },
+                  }}
+                ></TextField>
+                <Dropdown
+                  placeholder="Select a country"
+                  selectedKey={values.address.country}
+                  onChange={(_, option) =>
+                    setFieldValue("address.country", option?.key)
+                  }
+                  onBlur={handleBlur}
+                  options={[
+                    {
+                      key: "",
+                      text: "Select Country",
+                      disabled: true,
+                    },
+                    ...countries,
+                  ]}
+                  styles={{
+                    title: {
+                      border: "1px solid rgba(0,0,0,.2)",
+                      borderRadius: 6,
+                    },
+                    callout: {
+                      borderRadius: 5,
+                    },
+                    dropdown: {
+                      border: "none",
+                      outline: "none",
+                    },
+                    root: {
+                      width: "50%",
+                    },
+                  }}
+                />
+              </Stack>
+            </Stack>
+            <Stack>
+              <CustomSelect
+                label="Status"
+                selectedKey={values.status}
+                onChange={(_, option) => setFieldValue("status", option?.key)}
                 onBlur={handleBlur}
                 options={[
                   {
                     key: "",
-                    text: "Select Country",
+                    text: "Please select  status of client",
                     disabled: true,
                   },
-                  ...countries,
+                  { key: "active", text: "Active" },
+                  { key: "inactive", text: "In-Active" },
                 ]}
                 styles={{
-                  title: {
-                    border: "1px solid rgba(0,0,0,.2)",
-                    borderRadius: 6,
-                  },
-                  callout: {
-                    borderRadius: 5,
-                  },
-                  dropdown: {
-                    border: "none",
-                    outline: "none",
-                  },
-                  root: {
-                    width: "50%",
-                  },
+                  root: { border: "none" },
                 }}
               />
+              <Text className="error">{touched.status && errors.status}</Text>
             </Stack>
-          </Stack>
-          <Stack>
-            <CustomSelect
-              label="Status"
-              selectedKey={values.status}
-              onChange={(_, option) => setFieldValue("status", option?.key)}
-              onBlur={handleBlur}
-              options={[
-                {
-                  key: "",
-                  text: "Please select  status of client",
-                  disabled: true,
-                },
-                { key: "active", text: "Active" },
-                { key: "inactive", text: "In-Active" },
-              ]}
-              styles={{
-                root: { border: "none" },
-              }}
-            />
-            <Text className="error">{touched.status && errors.status}</Text>
           </Stack>
           {/* <Stack horizontalAlign="start">
             <ActionButton

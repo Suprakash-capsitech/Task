@@ -8,6 +8,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   onChange,
   // onBlur,
   options,
+  styles,
 }) => {
   return (
     <Dropdown
@@ -18,19 +19,19 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
       placeholder="Select an option"
       options={options}
       styles={{
-        title:{
+        ...styles,
+        title: {
           border: "1px solid rgba(0,0,0,.2)",
-          borderRadius: 6
+          
+          borderRadius: 6,
         },
-        callout:{
+        callout: {
           borderRadius: 5,
-          },
+        },
         dropdown: {
-          border:"none",
+          border: "none",
           outline: "none",
         },
-
-        
       }}
     />
   );
