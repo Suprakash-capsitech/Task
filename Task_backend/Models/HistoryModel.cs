@@ -30,6 +30,8 @@ namespace Task_backend.Models
     {
         Created,
         Updated,
-        Deleted
+        Deleted,
+        Linked,
+        Unlinked
     }
 }

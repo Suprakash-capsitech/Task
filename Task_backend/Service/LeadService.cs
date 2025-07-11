@@ -197,7 +197,7 @@ namespace Task_backend.Service
 
         }
 
-        public async Task<IEnumerable<LeadsModel>> GetLeads(string type, string role, string userId, string? search)
+        public async Task<IEnumerable<LeadsModel>> GetLeads(string type, string role, string userId, string? search , string? filtertype, string? filtervalue)
         {
             try
             {
@@ -213,6 +213,12 @@ namespace Task_backend.Service
                         );
 
                         leadfilter = Builders<LeadsModel>.Filter.And(leadfilter, searchFilter);
+                    }
+                    if (!string.IsNullOrEmpty(filtertype) && !string.IsNullOrEmpty(filtervalue))
+                    {
+                        var fieldfilter = Builders<LeadsModel>.Filter.Eq(filtertype, filtervalue);
+
+                        leadfilter = Builders<LeadsModel>.Filter.And(leadfilter, fieldfilter);
                     }
 
                     var leadslist = await _dbContext.Leads.Find(leadfilter).ToListAsync();
@@ -257,7 +263,12 @@ namespace Task_backend.Service
 
                         leadfilter = Builders<LeadsModel>.Filter.And(leadfilter, searchFilter);
                     }
+                    if (!string.IsNullOrEmpty(filtertype) && !string.IsNullOrEmpty(filtervalue))
+                    {
+                        var fieldfilter = Builders<LeadsModel>.Filter.Eq(filtertype, filtervalue);
 
+                        leadfilter = Builders<LeadsModel>.Filter.And(leadfilter, fieldfilter);
+                    }
                     var leadslist = await _dbContext.Leads.Find(leadfilter).ToListAsync();
                     var userIds = leadslist.Select(l => l.Created_By_Id).Distinct().ToList();
 

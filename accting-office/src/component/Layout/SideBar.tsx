@@ -108,12 +108,12 @@ const SideBar: React.FC = () => {
     groupContent: {
       marginBottom: 0,
     },
-    compositeLink:{
-      alignItems:"end",
-      alignContent:"end",
-      justifyContent:"end",
-      justifyItems:"end"
-    }
+    // compositeLink:{
+    //   alignItems:"end",
+    //   alignContent:"end",
+    //   justifyContent:"end",
+    //   justifyItems:"end"
+    // }
   };
 
   return (

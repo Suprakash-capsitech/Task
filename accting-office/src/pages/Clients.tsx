@@ -18,14 +18,16 @@ import type { ClientInterface } from "../types";
 import { useNavigate } from "react-router-dom";
 import CustomBreadCrum from "../component/common/CustomBreadCrum";
 import CreateClientForm from "../component/CreateClientForm";
-import ClientUpdateForm from "../component/ClientUpdateForm";
+// import ClientUpdateForm from "../component/ClientUpdateForm";
 
 const Clients = () => {
   const [isOpen, setisOpen] = useState<boolean>(false);
   const [search, setSearch] = useState<string>("");
+  const [filterType, setfilterType] = useState<string>("");
+  const [filterValue, setfilterValue] = useState<string>("");
   const [isloading, setisloading] = useState<boolean>(false);
   const [clientlist, setclientlist] = useState<ClientInterface[]>([]);
-  const [openModal, setopenModal] = useState<ClientInterface>();
+  // const [openModal, setopenModal] = useState<ClientInterface>();
   const [currentPage, setCurrentPage] = useState(0);
   const [columns, setColumns] = useState<IColumn[]>([]);
   const axiosPrivate = useAxiosPrivate();
@@ -56,6 +58,8 @@ const Clients = () => {
       const response = await axiosPrivate("/Client/clients", {
         params: {
           search: search,
+          filtertype: filterType,
+          filtervalue: filterValue,
         },
       });
 
@@ -72,20 +76,18 @@ const Clients = () => {
   const refresh = () => {
     GetClients();
   };
-  const handleSearch = () => {
-    GetClients();
-  };
+
   useEffect(() => {
     GetClients();
-  }, []);
+  }, [filterValue]);
   useEffect(() => {
     const initialColumns: IColumn[] = [
       {
         key: "serial",
         name: "S.No.",
         fieldName: "serial",
-        minWidth: 50,
-        maxWidth: 60,
+        minWidth: 80,
+        maxWidth: 90,
         isResizable: false,
         isSorted: false,
         isSortedDescending: false,
@@ -117,7 +119,7 @@ const Clients = () => {
         key: "email",
         name: "Email",
         fieldName: "email",
-        minWidth: 150,
+        minWidth: 180,
         isResizable: true,
         isSorted: false,
       },
@@ -125,7 +127,7 @@ const Clients = () => {
         key: "type",
         name: "Type",
         fieldName: "type",
-        minWidth: 120,
+        minWidth: 150,
         isResizable: true,
         isSorted: false,
       },
@@ -133,7 +135,7 @@ const Clients = () => {
         key: "address",
         name: "Address",
         fieldName: "address",
-        minWidth: 120,
+        minWidth: 150,
         isResizable: true,
         onRender: (item: ClientInterface) => item.address.area,
       },
@@ -141,7 +143,7 @@ const Clients = () => {
         key: "contact_person",
         name: "Contact Person",
         // fieldName: "created_Details",
-        minWidth: 120,
+        minWidth: 150,
         isResizable: true,
         onRender: (item: ClientInterface) => (
           <Text
@@ -160,7 +162,7 @@ const Clients = () => {
         key: "created_By",
         name: "Created By",
         fieldName: "created_By.name",
-        minWidth: 120,
+        minWidth: 150,
         isResizable: true,
         onRender: (item: ClientInterface) => item.created_By?.name,
       },
@@ -168,7 +170,7 @@ const Clients = () => {
         key: "createdAt",
         name: "Created At",
         fieldName: "createdAt",
-        minWidth: 120,
+        minWidth: 150,
         isResizable: true,
         onRender: (item: ClientInterface) =>
           new Date(item.createdAt).toLocaleDateString("en-GB", {
@@ -181,7 +183,7 @@ const Clients = () => {
         key: "actions",
         name: "Actions",
         fieldName: "actions",
-        minWidth: 120,
+        minWidth: 150,
 
         isResizable: true,
         onRender: (item: ClientInterface) => (
@@ -226,25 +228,29 @@ const Clients = () => {
     setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1));
 
   return (
-    <Stack>
+    <Stack tokens={{ maxHeight: "90vh" }}>
       <CustomBreadCrum items={BreadCrumitem} />
       <CustomCommandBar
-        handleSubmit={handleSearch}
+        handleSubmit={refresh}
         SetSearch={setSearch}
         OpenForm={setisOpen}
         RefreshList={refresh}
+        setFilterType={setfilterType}
+        setFilterValue={setfilterValue}
+        showFilter={true}
       />
-
-      <CreateClientForm
-        isFormOpen={isOpen}
-        OpenForm={setisOpen}
-        RefreshList={refresh}
-      />
+      {isOpen && (
+        <CreateClientForm
+          isFormOpen={isOpen}
+          OpenForm={setisOpen}
+          RefreshList={refresh}
+        />
+      )}
 
       <Stack
-        tokens={{ childrenGap: 5, padding: 5 }}
+        tokens={{ childrenGap: 5 }}
         style={{
-          overflow: "auto",
+          overflowY: "auto",
           scrollbarWidth: "thin",
           scrollbarColor: "rgb(218, 218, 218) ",
         }}
@@ -257,7 +263,7 @@ const Clients = () => {
               items={paginatedItems}
               columns={columns}
               setKey="set"
-              layoutMode={DetailsListLayoutMode.fixedColumns}
+              layoutMode={DetailsListLayoutMode.justified}
               selectionMode={SelectionMode.none}
               isHeaderVisible={true}
               columnReorderOptions={{
@@ -302,91 +308,91 @@ const Clients = () => {
               <></>
             ) : (
               <Stack
-                                horizontal
-                                horizontalAlign="space-between"
-                                tokens={{ childrenGap: 12, padding: 5 }}
-                                verticalAlign="center"
-                              >
-                                <Stack>
-                                  <Dropdown
-                                    selectedKey={itemperpage}
-                                    onChange={(_event, option) => {
-                                      if (option) {
-                                        setItemperpage(option.key as number);
-                                      }
-                                    }}
-                                    options={pageoption}
-                                    styles={{
-                                      title: {
-                                        border: "1px solid rgba(0,0,0,.2)",
-              
-                                        borderRadius: 6,
-                                      },
-                                      callout: {
-                                        borderRadius: 5,
-                                      },
-                                      dropdown: {
-                                        border: "none",
-                                        outline: "none",
-                                      },
-                                    }}
-                                  />
-                                </Stack>
-                                <Stack horizontal tokens={{ childrenGap: 8 }}>
-                                  <IconButton
-                                    iconProps={{ iconName: "ChevronLeft" }}
-                                    title="Previous"
-                                    ariaLabel="Previous"
-                                    onClick={handlePrevious}
-                                    disabled={currentPage === 0}
-                                  />
-              
-                                  <Stack
-                                    horizontal
-                                    verticalAlign="end"
-                                    tokens={{ childrenGap: 8 }}
-                                  >
-                                    {Array.from({ length: totalPages }, (_, i) => (
-                                      <Text
-                                        key={i}
-                                        onClick={() => setCurrentPage(i)}
-                                        style={{
-                                          cursor: "pointer",
-                                          fontWeight: currentPage === i ? "bold" : "normal",
-                                          color: currentPage === i ? "#0078D4" : "#333",
-                                          padding: "4px 6px",
-                                          borderRadius: 4,
-                                          backgroundColor:
-                                            currentPage === i ? "#e5f1fb" : "transparent",
-                                        }}
-                                      >
-                                        {i + 1}
-                                      </Text>
-                                    ))}
-                                  </Stack>
-              
-                                  <IconButton
-                                    iconProps={{ iconName: "ChevronRight" }}
-                                    title="Next"
-                                    ariaLabel="Next"
-                                    onClick={handleNext}
-                                    disabled={currentPage >= totalPages - 1}
-                                  />
-                                </Stack>
-                              </Stack>
+                horizontal
+                horizontalAlign="space-between"
+                tokens={{ childrenGap: 12, padding: 5 }}
+                verticalAlign="center"
+              >
+                <Stack>
+                  <Dropdown
+                    selectedKey={itemperpage}
+                    onChange={(_event, option) => {
+                      if (option) {
+                        setItemperpage(option.key as number);
+                      }
+                    }}
+                    options={pageoption}
+                    styles={{
+                      title: {
+                        border: "1px solid rgba(0,0,0,.2)",
+
+                        borderRadius: 6,
+                      },
+                      callout: {
+                        borderRadius: 5,
+                      },
+                      dropdown: {
+                        border: "none",
+                        outline: "none",
+                      },
+                    }}
+                  />
+                </Stack>
+                <Stack horizontal tokens={{ childrenGap: 8 }}>
+                  <IconButton
+                    iconProps={{ iconName: "ChevronLeft" }}
+                    title="Previous"
+                    ariaLabel="Previous"
+                    onClick={handlePrevious}
+                    disabled={currentPage === 0}
+                  />
+
+                  <Stack
+                    horizontal
+                    verticalAlign="end"
+                    tokens={{ childrenGap: 8 }}
+                  >
+                    {Array.from({ length: totalPages }, (_, i) => (
+                      <Text
+                        key={i}
+                        onClick={() => setCurrentPage(i)}
+                        style={{
+                          cursor: "pointer",
+                          fontWeight: currentPage === i ? "bold" : "normal",
+                          color: currentPage === i ? "#0078D4" : "#333",
+                          padding: "4px 6px",
+                          borderRadius: 4,
+                          backgroundColor:
+                            currentPage === i ? "#e5f1fb" : "transparent",
+                        }}
+                      >
+                        {i + 1}
+                      </Text>
+                    ))}
+                  </Stack>
+
+                  <IconButton
+                    iconProps={{ iconName: "ChevronRight" }}
+                    title="Next"
+                    ariaLabel="Next"
+                    onClick={handleNext}
+                    disabled={currentPage >= totalPages - 1}
+                  />
+                </Stack>
+              </Stack>
             )}
           </Stack>
         )}
       </Stack>
 
-      {openModal && (
+      {/* {openModal && (
         <ClientUpdateForm
           isFormOpen={!!openModal}
           value={openModal}
           OpenForm={setopenModal}
           RefreshList={refresh}
         />
-      )}
+      )} */}
     </Stack>
   );
 };

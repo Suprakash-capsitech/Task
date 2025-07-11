@@ -11,7 +11,7 @@ import CustomBreadCrum from "../component/common/CustomBreadCrum";
 import { useLocation } from "react-router-dom";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import { useEffect, useState } from "react";
-import type { HistoryInterface, LeadsInterface } from "../types";
+import type {  LeadsInterface } from "../types";
 import ProfileCard from "../component/ProfileCard";
 import HistoryCard from "../component/HistoryCard";
 import LeadUpdateForm from "../component/LeadUpdateForm";
@@ -23,22 +23,7 @@ const SingleLead = () => {
   const [openForm, setopenForm] = useState<boolean>(false);
   const path = location.pathname.split("/")[2];
   const axiosPrivate = useAxiosPrivate();
-  const [history, sethistory] = useState<HistoryInterface[]>();
-  const GetHistory = async () => {
-    setisloading(true);
-    try {
-      const response = await axiosPrivate(`/History/history/${path}`);
-
-      if (response.data) {
-        sethistory(response.data);
-        setisloading(false);
-      }
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setisloading(false);
-    }
-  };
+  
   const BreadCrumitem = [
     { key: "home", text: "Home", href: "/" },
     { key: "lead", text: "Lead", href: "/lead" },
@@ -46,7 +31,6 @@ const SingleLead = () => {
   ];
   const RefreshDetails = () => {
     GetLeadDetails();
-    GetHistory()
   }
   const GetLeadDetails = async () => {
     setisloading(true);
@@ -64,7 +48,6 @@ const SingleLead = () => {
   };
   useEffect(() => {
     GetLeadDetails();
-    GetHistory();
   }, []);
   const handleTabClick = (item?: PivotItem) => {
     const key = item?.props.itemKey;
@@ -106,7 +89,7 @@ const SingleLead = () => {
               itemIcon="history"
               itemKey="history"
             >
-              {history && <HistoryCard data={history} />}
+              {history && <HistoryCard />}
             </PivotItem>
           </Pivot>
         </Stack>

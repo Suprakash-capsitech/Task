@@ -66,7 +66,7 @@ namespace Task_backend.Service
             }
         }
 
-        public async Task<IEnumerable<ClientsModel>> GetAllClients(string userId, string role, string? search)
+        public async Task<IEnumerable<ClientsModel>> GetAllClients(string userId, string role, string? search, string? filtertype, string? filtervalue)
         {
             try
             {
@@ -83,7 +83,12 @@ namespace Task_backend.Service
 
                         filter = Builders<ClientsModel>.Filter.And(filter, searchFilter);
                     }
+                    if (!string.IsNullOrEmpty(filtertype) && !string.IsNullOrEmpty(filtervalue))
+                    {
+                        var fieldfilter = Builders<ClientsModel>.Filter.Eq(filtertype, filtervalue);
 
+                        filter = Builders<ClientsModel>.Filter.And(filter, fieldfilter);
+                    }
                     var clientList = await _dbContext.Clients.Find(filter).ToListAsync();
                     var userIds = clientList.Select(l => l.Created_By_Id).Distinct().ToList();
                     var allContactIds = clientList
@@ -137,6 +142,12 @@ namespace Task_backend.Service
                         );
 
                         filter = Builders<ClientsModel>.Filter.And(filter, searchFilter);
+                    }
+                    if (!string.IsNullOrEmpty(filtertype) && !string.IsNullOrEmpty(filtervalue))
+                    {
+                        var fieldfilter = Builders<ClientsModel>.Filter.Eq(filtertype, filtervalue);
+
+                        filter = Builders<ClientsModel>.Filter.And(filter, fieldfilter);
                     }
                     var clientList = await _dbContext.Clients.Find(filter).ToListAsync();
                     var userIds = clientList.Select(l => l.Created_By_Id).Distinct().ToList();

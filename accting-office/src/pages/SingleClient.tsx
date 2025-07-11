@@ -12,7 +12,7 @@ import CustomBreadCrum from "../component/common/CustomBreadCrum";
 import { useLocation } from "react-router-dom";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import { useEffect, useState } from "react";
-import type { ClientInterface, HistoryInterface } from "../types";
+import type { ClientInterface } from "../types";
 import HistoryCard from "../component/HistoryCard";
 import ProfileCard from "../component/ProfileCard";
 import ContactPivot from "../component/ContactPivot";
@@ -26,22 +26,7 @@ const SingleClient = () => {
   const location = useLocation();
   const path = location.pathname.split("/")[2];
   const axiosPrivate = useAxiosPrivate();
-  const [history, sethistory] = useState<HistoryInterface[]>();
-  const GetHistory = async () => {
-    setisloading(true);
-    try {
-      const response = await axiosPrivate(`/History/history/${path}`);
-
-      if (response.data) {
-        sethistory(response.data);
-        setisloading(false);
-      }
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setisloading(false);
-    }
-  };
+ 
   const BreadCrumitem = [
     { key: "home", text: "Home", href: "/" },
     { key: "client", text: "Client", href: "/client" },
@@ -62,7 +47,6 @@ const SingleClient = () => {
   ];
   const refreshDetails = () => {
     GetClientDetails();
-    GetHistory();
   };
   const GetClientDetails = async () => {
     setisloading(true);
@@ -81,7 +65,6 @@ const SingleClient = () => {
 
   useEffect(() => {
     GetClientDetails();
-    GetHistory();
   }, []);
   const handleTabClick = (item?: PivotItem) => {
     const key = item?.props.itemKey;
@@ -160,7 +143,7 @@ const SingleClient = () => {
                 itemIcon="history"
                 itemKey="history"
               >
-                {history && <HistoryCard data={history} />}
+                {history && <HistoryCard  />}
               </PivotItem>
               <PivotItem
                 headerText="Contact"

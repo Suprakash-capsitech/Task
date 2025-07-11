@@ -201,6 +201,7 @@ const ContactPivot: FC<ContactPivotProps> = ({ data, RefreshList }) => {
   return (
     <Stack>
       <CustomCommandBar
+        showFilter={false}
         handleSubmit={HandleSearch}
         SetSearch={setSearch}
         RefreshList={RefreshList}
@@ -318,11 +319,13 @@ const ContactPivot: FC<ContactPivotProps> = ({ data, RefreshList }) => {
           </Stack>
         )}
       </Stack>
-      <LinkContactForm
-        RefreshList={RefreshList}
-        isFormOpen={openForm}
-        OpenForm={setopenForm}
-      />
+      {openForm && (
+        <LinkContactForm
+          RefreshList={RefreshList}
+          isFormOpen={openForm}
+          OpenForm={setopenForm}
+        />
+      )}
     </Stack>
   );
 };

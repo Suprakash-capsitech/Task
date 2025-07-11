@@ -22,11 +22,13 @@ const Custominput: React.FC<CustomInputProps> = ({
       className={`${classname}`}
       styles={{
         fieldGroup: {
-          padding: 5,
           borderRadius: 5,
           outline: "none",
           border: "1px solid rgba(0,0,0,.2)",
         },
+        revealButton:{
+          color:"black"
+        }
       }}
       value={value}
       onChange={onChange}

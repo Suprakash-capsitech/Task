@@ -33,26 +33,24 @@ namespace Task_backend.Controllers
                 try
                 {
                     var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                    if (!string.IsNullOrEmpty(userId))
+                    if (string.IsNullOrEmpty(userId))
                     {
-                        var newLead = await _leadService.CreateLead(Req, userId);
-                        CreatedHistoryDto historyRequest = new() { History_of = newLead.Id, Performed_By_Id = userId, Task_Performed = "Created", Description = $"New {newLead.Type} was created" };
-                        await _historyService.CreatedHistory(historyRequest);
-                        if (!String.IsNullOrEmpty(Req.Client_id))
-                        {
-                            var client = await _clientService.LinkLead(Req.Client_id, newLead.Id);
-                            CreatedHistoryDto Linkedhistory = new() { History_of = Req.Client_id, Performed_By_Id = userId, Task_Performed = "Linked", Description = $"{newLead.Name} was Linked to client  " };
-                            await _historyService.CreatedHistory(Linkedhistory);
-                            CreatedHistoryDto LeadLinkRequest = new() { History_of = newLead.Id, Performed_By_Id = userId, Task_Performed = "Linked", Description = $"{newLead.Name} was Linked to client {client.Name}" };
-                            await _historyService.CreatedHistory(LeadLinkRequest);
-                        }
+                        return Unauthorized();
+                    }
+                    var newLead = await _leadService.CreateLead(Req, userId);
+                    CreatedHistoryDto historyRequest = new() { History_of = newLead.Id, Performed_By_Id = userId, Task_Performed = "Created", Description = $"New {newLead.Type} was created" };
+                    await _historyService.CreatedHistory(historyRequest);
+                    if (!String.IsNullOrEmpty(Req.Client_id))
+                    {
+                        var client = await _clientService.LinkLead(Req.Client_id, newLead.Id);
+                        CreatedHistoryDto Linkedhistory = new() { History_of = Req.Client_id, Performed_By_Id = userId, Task_Performed = "Linked", Description = $"{newLead.Name} was Linked to client  " };
+                        await _historyService.CreatedHistory(Linkedhistory);
+                        CreatedHistoryDto LeadLinkRequest = new() { History_of = newLead.Id, Performed_By_Id = userId, Task_Performed = "Linked", Description = $"{newLead.Name} was Linked to client {client.Name}" };
+                        await _historyService.CreatedHistory(LeadLinkRequest);
+                    }
 
-                        return Ok(newLead);
-                    }
-                    else
-                    {
-                        return StatusCode(500, "Internal Server Error");
-                    }
+                    return Ok(newLead);
+
 
                 }
                 catch (Exception)
@@ -107,7 +105,7 @@ namespace Task_backend.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<LeadsModel>> GetLeads([FromQuery] string? search)
+        public async Task<ActionResult<LeadsModel>> GetLeads([FromQuery] string? search, [FromQuery] string? filtertype, [FromQuery] string? filtervalue)
         {
             try
             {
@@ -118,7 +116,7 @@ namespace Task_backend.Controllers
                 if (!String.IsNullOrEmpty(role) && !String.IsNullOrEmpty(userId))
                 {
 
-                    var leadList = await _leadService.GetLeads(type, role, userId, search);
+                    var leadList = await _leadService.GetLeads(type, role, userId, search, filtertype, filtervalue);
                     return Ok(leadList);
                 }
                 else
@@ -141,7 +139,7 @@ namespace Task_backend.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<LeadsModel>> GetContacts([FromQuery] string? search)
+        public async Task<ActionResult<LeadsModel>> GetContacts([FromQuery] string? search, [FromQuery] string? filtertype, [FromQuery] string? filtervalue)
         {
             try
             {
@@ -151,7 +149,7 @@ namespace Task_backend.Controllers
                 if (!String.IsNullOrEmpty(role) && !String.IsNullOrEmpty(userId))
                 {
 
-                    var contactList = await _leadService.GetLeads(type, role, userId , search);
+                    var contactList = await _leadService.GetLeads(type, role, userId, search, filtertype, filtervalue);
                     return Ok(contactList);
                 }
                 else
@@ -222,11 +220,23 @@ namespace Task_backend.Controllers
             {
                 try
                 {
+                    var leadOld = await _leadService.GetLeadById(Id);
+                    string description = string.Empty;
+                    if (leadOld.Name != Req.Name)
+                        description += $"Name Updated from {leadOld.Name} to {Req.Name}";
+                    if (leadOld.Email != Req.Email)
+                        description += $"Email Updated from {leadOld.Email} to {Req.Email}";
+                    if (leadOld.Phone_Number!= Req.Phone_Number)
+                        description += $"Phone Number Updated from {leadOld.Phone_Number} to {Req.Phone_Number}";
+                    if (leadOld.Type != Req.Type)
+                        description += $"Type Updated from {leadOld.Type} to {Req.Type}";
+                     if (leadOld.Status != Req.Status)
+                        description += $"Status Updated from {leadOld.Status} to {Req.Status}";
                     var lead = await _leadService.UpdateLead(Id, Req);
                     var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                     if (!string.IsNullOrEmpty(userId))
                     {
-                        CreatedHistoryDto historyRequest = new() { History_of = lead.Id, Performed_By_Id = userId, Task_Performed = "Updated", Description = $"Lead Details were updated" };
+                        CreatedHistoryDto historyRequest = new() { History_of = lead.Id, Performed_By_Id = userId, Task_Performed = "Updated", Description = description };
                         await _historyService.CreatedHistory(historyRequest);
                     }
                     return Ok(lead);
