@@ -5,27 +5,28 @@ import {
   Dropdown,
   IconButton,
   SelectionMode,
+  Spinner,
   Stack,
   Text,
   type IColumn,
   type IDropdownOption,
 } from "@fluentui/react";
 import type { LeadsInterface } from "../types";
-import { useEffect, useState, type FC } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { isAxiosError } from "axios";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import CustomCommandBar from "./common/CustomCommandBar";
 import LinkContactForm from "./LinkContactForm";
-interface ContactPivotProps {
-  data: LeadsInterface[];
-  RefreshList: () => void;
-}
-const ContactPivot: FC<ContactPivotProps> = ({ data, RefreshList }) => {
+import { LeadTypeCnversion, StatusConversion } from "../utils/EnumtoString";
+
+const ContactPivot = () => {
+  const [data, setdata] = useState<LeadsInterface[]>([]);
   const [columns, setColumns] = useState<IColumn[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(0);
   const [itemperpage, setItemperpage] = useState<number>(5);
   const [openForm, setopenForm] = useState<boolean>(false);
+  const [isloading, setisloading] = useState<boolean>(false);
   const [search, setSearch] = useState<string>("");
   const [filteredContact, setfilteredContact] = useState<LeadsInterface[]>([]);
   const location = useLocation();
@@ -56,7 +57,26 @@ const ContactPivot: FC<ContactPivotProps> = ({ data, RefreshList }) => {
       )
     );
   };
+
   const axiosPrivate = useAxiosPrivate();
+  const GetContactLeads = async () => {
+    setisloading(true);
+    try {
+      const response = await axiosPrivate.get(`Lead/leadbyclient/${path}`);
+
+      if (response.data) {
+        setdata(response.data);
+        setfilteredContact(response.data);
+      }
+    } catch (error) {
+      // console.log(error);
+    } finally {
+      setisloading(false);
+    }
+  };
+  useEffect(() => {
+    GetContactLeads();
+  }, []);
   useEffect(() => {
     const initialColumns: IColumn[] = [
       {
@@ -107,11 +127,14 @@ const ContactPivot: FC<ContactPivotProps> = ({ data, RefreshList }) => {
         minWidth: 80,
         isResizable: true,
         isSorted: false,
+        onRender: (item: LeadsInterface) => {
+          return <Text>{LeadTypeCnversion[item.type]}</Text>;
+        },
       },
       {
         key: "phone",
         name: "Phone Number",
-        fieldName: "phone_Number",
+        fieldName: "phoneNumber",
         minWidth: 100,
         isResizable: true,
       },
@@ -125,19 +148,15 @@ const ContactPivot: FC<ContactPivotProps> = ({ data, RefreshList }) => {
           <Text
             style={{
               color:
-                item.status === "active"
-                  ? " rgb(16, 124, 16)"
-                  : "rgb(50, 49, 48)",
+                item.status === 1 ? " rgb(16, 124, 16)" : "rgb(50, 49, 48)",
               backgroundColor:
-                item.status === "active"
-                  ? "rgb(223, 246, 221)"
-                  : "rgb(255, 244, 206)",
+                item.status === 1 ? "rgb(223, 246, 221)" : "rgb(255, 244, 206)",
               padding: "4px 8px",
               borderRadius: 4,
               display: "inline-block",
             }}
           >
-            {item.status}
+            {StatusConversion[item.status]}
           </Text>
         ),
       },
@@ -172,16 +191,16 @@ const ContactPivot: FC<ContactPivotProps> = ({ data, RefreshList }) => {
               onClick={async () => {
                 try {
                   const response = await axiosPrivate.put(
-                    `/Client/unlinklead/${path}?lead_id=${item.id}`
+                    `/Client/unlinklead/${path}?leadId=${item.id}`
                   );
                   if (response) {
-                    RefreshList();
+                    GetContactLeads();
                   }
                 } catch (error: unknown) {
                   if (isAxiosError(error)) {
-                    alert(error.response?.data);
+                    // console.log(error.response?.data);
                   } else {
-                    console.log(error);
+                    // console.log(error);
                   }
                 }
               }}
@@ -192,9 +211,7 @@ const ContactPivot: FC<ContactPivotProps> = ({ data, RefreshList }) => {
     ];
     setColumns(initialColumns);
   }, [itemperpage, startIndex]);
-  useEffect(() => {
-    setfilteredContact(data);
-  }, []);
+
   useEffect(() => {
     setCurrentPage(0);
   }, [itemperpage]);
@@ -204,124 +221,140 @@ const ContactPivot: FC<ContactPivotProps> = ({ data, RefreshList }) => {
         showFilter={false}
         handleSubmit={HandleSearch}
         SetSearch={setSearch}
-        RefreshList={RefreshList}
+        RefreshList={GetContactLeads}
         OpenForm={setopenForm}
       />
-      <Stack tokens={{ childrenGap: 10 }}>
-        <DetailsList
-          items={paginatedItems}
-          columns={columns}
-          setKey="set"
-          layoutMode={DetailsListLayoutMode.fixedColumns}
-          selectionMode={SelectionMode.none}
-          isHeaderVisible={true}
-          columnReorderOptions={{
-            frozenColumnCountFromStart: 0,
-            frozenColumnCountFromEnd: 0,
-            handleColumnReorder: (draggedIndex, targetIndex) => {
-              const newColumns = [...columns];
-              const [dragged] = newColumns.splice(draggedIndex, 1);
-              newColumns.splice(targetIndex, 0, dragged);
-              setColumns(newColumns);
-            },
-          }}
-          onRenderRow={(props, defaultRender) => {
-            if (!props || !defaultRender) return null;
+      {isloading ? (
+        <Spinner label="Data is Loading" />
+      ) : (
+        <Stack tokens={{ childrenGap: 10 }}>
+          <DetailsList
+            items={paginatedItems}
+            columns={columns}
+            setKey="set"
+            layoutMode={DetailsListLayoutMode.fixedColumns}
+            selectionMode={SelectionMode.none}
+            isHeaderVisible={true}
+            columnReorderOptions={{
+              frozenColumnCountFromStart: 0,
+              frozenColumnCountFromEnd: 0,
+              handleColumnReorder: (draggedIndex, targetIndex) => {
+                const newColumns = [...columns];
+                const [dragged] = newColumns.splice(draggedIndex, 1);
+                newColumns.splice(targetIndex, 0, dragged);
+                setColumns(newColumns);
+              },
+            }}
+            onRenderRow={(props, defaultRender) => {
+              if (!props || !defaultRender) return null;
 
-            const isEven = props.itemIndex % 2 === 0;
+              const isEven = props.itemIndex % 2 === 0;
 
-            return defaultRender({
-              ...props,
-              styles: {
-                root: {
-                  backgroundColor: isEven ? "#f9f9f9" : "white", // stripe effect
-                  selectors: {
-                    ":hover": {
-                      backgroundColor: "#eaeaea", // optional hover
+              return defaultRender({
+                ...props,
+                styles: {
+                  root: {
+                    backgroundColor: isEven ? "#f9f9f9" : "white",
+                    selectors: {
+                      ":hover": {
+                        backgroundColor: "#eaeaea",
+                      },
                     },
                   },
                 },
-              },
-            });
-          }}
-        />
-        {filteredContact.length === 0 ? (
-          <></>
-        ) : (
-          <Stack
-            horizontal
-            horizontalAlign="space-between"
-            tokens={{ childrenGap: 12, padding: 5 }}
-            verticalAlign="center"
-          >
-            <Stack>
-              <Dropdown
-                selectedKey={itemperpage}
-                onChange={(_event, option) => {
-                  if (option) {
-                    setItemperpage(option.key as number);
-                  }
-                }}
-                options={pageoption}
-                styles={{
-                  title: {
-                    border: "1px solid rgba(0,0,0,.2)",
-
-                    borderRadius: 6,
-                  },
-                  callout: {
-                    borderRadius: 5,
-                  },
-                  dropdown: {
-                    border: "none",
-                    outline: "none",
-                  },
-                }}
-              />
+              });
+            }}
+          />
+          {filteredContact.length === 0 ? (
+            <Stack
+              styles={{
+                root: {
+                  alignItems: "center",
+                },
+              }}
+            >
+              <Text>No Content</Text>
             </Stack>
-            <Stack horizontal tokens={{ childrenGap: 8 }}>
-              <IconButton
-                iconProps={{ iconName: "ChevronLeft" }}
-                title="Previous"
-                ariaLabel="Previous"
-                onClick={handlePrevious}
-                disabled={currentPage === 0}
-              />
+          ) : (
+            <Stack
+              horizontal
+              horizontalAlign="space-between"
+              tokens={{ childrenGap: 12, padding: 5 }}
+              verticalAlign="center"
+            >
+              <Stack>
+                <Dropdown
+                  selectedKey={itemperpage}
+                  onChange={(_event, option) => {
+                    if (option) {
+                      setItemperpage(option.key as number);
+                    }
+                  }}
+                  options={pageoption}
+                  styles={{
+                    title: {
+                      border: "1px solid rgba(0,0,0,.2)",
 
-              <Stack horizontal verticalAlign="end" tokens={{ childrenGap: 8 }}>
-                {Array.from({ length: totalPages }, (_, i) => (
-                  <Text
-                    key={i}
-                    onClick={() => setCurrentPage(i)}
-                    style={{
-                      cursor: "pointer",
-                      fontWeight: currentPage === i ? "bold" : "normal",
-                      color: currentPage === i ? "#0078D4" : "#333",
-                      padding: "4px 6px",
-                      borderRadius: 4,
-                      backgroundColor:
-                        currentPage === i ? "#e5f1fb" : "transparent",
-                    }}
-                  >
-                    {i + 1}
-                  </Text>
-                ))}
+                      borderRadius: 6,
+                    },
+                    callout: {
+                      borderRadius: 5,
+                    },
+                    dropdown: {
+                      border: "none",
+                      outline: "none",
+                    },
+                  }}
+                />
               </Stack>
+              <Stack horizontal tokens={{ childrenGap: 8 }}>
+                <IconButton
+                  iconProps={{ iconName: "ChevronLeft" }}
+                  title="Previous"
+                  ariaLabel="Previous"
+                  onClick={handlePrevious}
+                  disabled={currentPage === 0}
+                />
 
-              <IconButton
-                iconProps={{ iconName: "ChevronRight" }}
-                title="Next"
-                ariaLabel="Next"
-                onClick={handleNext}
-                disabled={currentPage >= totalPages - 1}
-              />
+                <Stack
+                  horizontal
+                  verticalAlign="end"
+                  tokens={{ childrenGap: 8 }}
+                >
+                  {Array.from({ length: totalPages }, (_, i) => (
+                    <Text
+                      key={i}
+                      onClick={() => setCurrentPage(i)}
+                      style={{
+                        cursor: "pointer",
+                        fontWeight: currentPage === i ? "bold" : "normal",
+                        color: currentPage === i ? "#0078D4" : "#333",
+                        padding: "4px 6px",
+                        borderRadius: 4,
+                        backgroundColor:
+                          currentPage === i ? "#e5f1fb" : "transparent",
+                      }}
+                    >
+                      {i + 1}
+                    </Text>
+                  ))}
+                </Stack>
+
+                <IconButton
+                  iconProps={{ iconName: "ChevronRight" }}
+                  title="Next"
+                  ariaLabel="Next"
+                  onClick={handleNext}
+                  disabled={currentPage >= totalPages - 1}
+                />
+              </Stack>
             </Stack>
-          </Stack>
-        )}
-      </Stack>
+          )}
+        </Stack>
+      )}
       {openForm && (
         <LinkContactForm
-          RefreshList={RefreshList}
+          RefreshList={GetContactLeads}
           isFormOpen={openForm}
           OpenForm={setopenForm}
         />

@@ -9,9 +9,9 @@ namespace Task_backend.Service
     public class HistoryService(DbContext dbContext) : IHistoryService
     {
         public readonly DbContext _dbContext = dbContext;
-        public async Task CreatedHistory(CreatedHistoryDto historyRequest)
+        public async Task CreatedHistory(CreateHistory historyRequest)
         {
-            HistoryModel newHistory = new() { History_of = historyRequest.History_of, Performed_By_Id = historyRequest.Performed_By_Id, Task_Performed = historyRequest.Task_Performed, Description = historyRequest.Description };
+            HistoryModel newHistory = new() { HistoryOf = historyRequest.HistoryOf, PerformedBy = historyRequest.PerformedBy, TaskPerfoemed = historyRequest.TaskPerformed, Description = historyRequest.Description };
 
             await _dbContext.History.InsertOneAsync(newHistory);
         }
@@ -20,33 +20,15 @@ namespace Task_backend.Service
         {
             try
             {
-                var sortdefination = Builders<HistoryModel>.Sort.Descending("createdAt");
-                var historyList = await _dbContext.History.Find(x => x.History_of == id).Sort(sortdefination).ToListAsync();
-                var userIds = historyList.Select(l => l.Performed_By_Id).Distinct().ToList();
-
-                var filter = Builders<UsersModel>.Filter.In(u => u.Id, userIds);
-                var users = await _dbContext.Users.Find(filter)
-                    .Project(u => new UserMaskedResponse
-                    {
-                        Id = u.Id,
-                        Name = u.Name
-                    }).ToListAsync();
-
-                var userDict = users.ToDictionary(u => u.Id, u => u);
-
-                foreach (var history in historyList)
-                {
-                    if (userDict.TryGetValue(history.Performed_By_Id, out var maskedUser))
-                    {
-                        history.Performed_By= maskedUser;
-                    }
-                }
+                var sortdefination = Builders<HistoryModel>.Sort.Descending("CreatedAt");
+                var historyList = await _dbContext.History.Find(x => x.HistoryOf.Id == id).Sort(sortdefination).ToListAsync();
+                
                 return historyList;
             }
             catch (Exception)
             {
                 throw new Exception("Database Error");
-                
+
             }
         }
     }

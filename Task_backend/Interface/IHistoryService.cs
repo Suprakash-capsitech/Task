@@ -5,7 +5,7 @@ namespace Task_backend.Interface
 {
     public interface IHistoryService
     {
-        Task CreatedHistory(CreatedHistoryDto historyRequest);
+        Task CreatedHistory(CreateHistory historyRequest);
         Task<IEnumerable<HistoryModel>> GetHistory(string id);
     }
 }

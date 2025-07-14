@@ -17,6 +17,7 @@ import HistoryCard from "../component/HistoryCard";
 import ProfileCard from "../component/ProfileCard";
 import ContactPivot from "../component/ContactPivot";
 import ClientUpdateForm from "../component/ClientUpdateForm";
+import { ClientTypeCnversion } from "../utils/EnumtoString";
 const SingleClient = () => {
   const [client, setclient] = useState<ClientInterface>();
   const [isloading, setisloading] = useState<boolean>(false);
@@ -26,7 +27,7 @@ const SingleClient = () => {
   const location = useLocation();
   const path = location.pathname.split("/")[2];
   const axiosPrivate = useAxiosPrivate();
- 
+
   const BreadCrumitem = [
     { key: "home", text: "Home", href: "/" },
     { key: "client", text: "Client", href: "/client" },
@@ -57,7 +58,7 @@ const SingleClient = () => {
         setclient(response.data);
       }
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     } finally {
       setisloading(false);
     }
@@ -87,7 +88,7 @@ const SingleClient = () => {
               imageUrl={"image.png"}
               imageInitials={client?.name.slice(0, 2)}
               text={client?.name}
-              secondaryText={client?.type}
+              secondaryText={ClientTypeCnversion[client?.type as number]}
               showSecondaryText
               onRenderTertiaryText={() => (
                 <Stack horizontal tokens={{ childrenGap: 8 }}>
@@ -110,7 +111,7 @@ const SingleClient = () => {
               }}
               size={PersonaSize.size72}
               presence={
-                client?.status == "active"
+                client?.status == 1
                   ? PersonaPresence.online
                   : PersonaPresence.offline
               }
@@ -127,9 +128,12 @@ const SingleClient = () => {
             <Pivot
               onLinkClick={handleTabClick}
               selectedKey={searchParam}
-              styles={{ link: { padding: 20 } ,itemContainer:{
-                paddingTop: 15
-              }}}
+              styles={{
+                link: { padding: 20 },
+                itemContainer: {
+                  paddingTop: 15,
+                },
+              }}
             >
               <PivotItem
                 headerText="Profile"
@@ -143,25 +147,27 @@ const SingleClient = () => {
                 itemIcon="history"
                 itemKey="history"
               >
-                {history && <HistoryCard  />}
+                {history && <HistoryCard />}
               </PivotItem>
               <PivotItem
                 headerText="Contact"
                 itemIcon="Phone"
                 itemKey="Contact"
               >
-                {client && (
-                  <ContactPivot
-                    RefreshList={refreshDetails}
-                    data={client.contact_Details}
-                  />
-                )}
+                {client && <ContactPivot />}
               </PivotItem>
             </Pivot>
           </Stack>
         </Stack>
       )}
-      {openForm && client && <ClientUpdateForm OpenForm={setopenForm}  isFormOpen={openForm} value={client} RefreshList={refreshDetails}/>}
+      {openForm && client && (
+        <ClientUpdateForm
+          OpenForm={setopenForm}
+          isFormOpen={openForm}
+          value={client}
+          RefreshList={refreshDetails}
+        />
+      )}
     </Stack>
   );
 };

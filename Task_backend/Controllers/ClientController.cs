@@ -5,6 +5,7 @@ using System.Net;
 using System.Security.Claims;
 using Task_backend.Dto;
 using Task_backend.Interface;
+using Task_backend.Models;
 using Task_backend.Service;
 using Task_backend.Validation;
 
@@ -13,11 +14,13 @@ namespace Task_backend.Controllers
     [Route("api/[controller]/")]
     [ApiController]
     [Authorize]
-    public class ClientController(IClientService clientService, IHistoryService historyService) : Controller
+    public class ClientController(IClientService clientService, IHistoryService historyService, IUserService userService, ILeadService leadService) : Controller
     {
         public readonly IClientService _clientService = clientService;
 
         public readonly IHistoryService _historyService = historyService;
+        public readonly IUserService _userService = userService;
+        public readonly ILeadService _leadService = leadService;
 
 
         /// <summary>
@@ -47,30 +50,47 @@ namespace Task_backend.Controllers
 
 
                     var newClient = await _clientService.CreateClient(Req, userId);
-                    CreatedHistoryDto historyRequest = new() { History_of = newClient.Id, Performed_By_Id = userId, Task_Performed = "Created", Description = $"Created Client by {newClient.Created_By.Name}" };
-                    await _historyService.CreatedHistory(historyRequest);
-
-                    if (newClient.Contact_Details?.Any() == true)
+                    var user = await _userService.GetUserById(userId);
+                    CreateHistory historyRequest = new()
                     {
-                        var contactHistories = newClient.Contact_Details.Select(contact => new[]
-                        {
-                                    new CreatedHistoryDto
+                        HistoryOf = new TargetModel { Id = newClient.Id, Name = newClient.Name },
+                        TaskPerformed = NoteType.Created,
+                        Description = $"New Client was creaeted",
+                        PerformedBy = new UserMaskedResponse { Id = userId, Name = user.Name }
+                    };
+                    await _historyService.CreatedHistory(historyRequest);
+                    if (newClient.ContactIds?.Any() != true)
+                    {
+                        Ok(newClient);
+                    }
+                    var leadlinks = newClient.ContactIds.Select(leadId =>
+                                    _leadService.LinkClientToLead(leadId, newClient.Id)
+                                );
+
+                    await Task.WhenAll(leadlinks);
+
+                    if (newClient.ContactDetails?.Any() == true)
+                    {
+                        var historyEntries = newClient.ContactDetails
+                            .SelectMany(contact => new[]
+                            {
+                                    new CreateHistory
                                     {
-                                        History_of = newClient.Id,
-                                        Performed_By_Id = userId,
-                                        Task_Performed = "Linked",
+                                        HistoryOf = new TargetModel { Id = newClient.Id, Name = newClient.Name },
+                                        PerformedBy = new UserMaskedResponse { Id = userId, Name = user.Name },
+                                        TaskPerformed = NoteType.Linked,
                                         Description = $"Contact {contact.Name} was linked to Client"
                                     },
-                                    new CreatedHistoryDto
+                                    new CreateHistory
                                     {
-                                        History_of = contact.Id,
-                                        Performed_By_Id = userId,
-                                        Task_Performed = "Linked",
+                                        HistoryOf = new TargetModel { Id = contact.Id, Name = contact.Name },
+                                        PerformedBy = new UserMaskedResponse { Id = userId, Name = user.Name },
+                                        TaskPerformed = NoteType.Linked,
                                         Description = $"{contact.Name} was linked to Client {newClient.Name}"
-                                    }
-                         }).SelectMany(x => x).ToList();
+            }
+                            });
 
-                        var historyTasks = contactHistories.Select(_historyService.CreatedHistory);
+                        var historyTasks = historyEntries.Select(_historyService.CreatedHistory);
                         await Task.WhenAll(historyTasks);
                     }
 
@@ -107,13 +127,13 @@ namespace Task_backend.Controllers
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 var role = User.FindFirst(ClaimTypes.Role)?.Value;
-                if (String.IsNullOrEmpty(userId) )
+                if (String.IsNullOrEmpty(userId) || String.IsNullOrEmpty(role))
                 {
                     return Unauthorized();
                 }
 
 
-                var newClient = await _clientService.GetAllClients(userId, role, search,   filtertype,    filtervalue);
+                var newClient = await _clientService.GetAllClients(userId, role, search, filtertype, filtervalue);
                 return Ok(newClient);
 
             }
@@ -220,11 +240,28 @@ namespace Task_backend.Controllers
                     {
                         return Unauthorized();
                     }
+                    var oldClient = await _clientService.GetClientById(Id);
+                    // check for the updated fields then update description
 
-
+                    string description = string.Empty;
                     var newClient = await _clientService.UpdateClient(Id, Req);
-
-                    CreatedHistoryDto historyRequest = new() { History_of = newClient.Id, Performed_By_Id = userId, Task_Performed = "Updated", Description = $"Clients Details were updated" };
+                    
+                    if (oldClient.Name != newClient.Name)
+                        description += $"Name Updated from {oldClient.Name} to {newClient.Name}/";
+                    if (oldClient.Email != newClient.Email)
+                        description += $"Email Updated from {oldClient.Email} to {newClient.Email}/";
+                    if (oldClient.Type != newClient.Type)
+                        description += $"Type Updated from {oldClient.Type} to {newClient.Type}/";
+                    if (oldClient.Status != newClient.Status)
+                        description += $"Status Updated from {oldClient.Status} to {newClient.Status}/";
+                    var user = await _userService.GetUserById(userId);
+                    CreateHistory historyRequest = new()
+                    {
+                        HistoryOf = new TargetModel { Id = newClient.Id, Name = newClient.Name },
+                        TaskPerformed = NoteType.Updated,
+                        Description = description,
+                        PerformedBy = new UserMaskedResponse { Id = userId, Name = user.Name }
+                    };
                     await _historyService.CreatedHistory(historyRequest);
 
                     return Ok(newClient);
@@ -255,7 +292,7 @@ namespace Task_backend.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> Unlinklead(string Id, string lead_id)
+        public async Task<IActionResult> Unlinklead(string Id, string leadId)
         {
             try
             {
@@ -264,10 +301,27 @@ namespace Task_backend.Controllers
                 {
                     return Unauthorized();
                 }
-                var client = await _clientService.UnLinkLead(Id, lead_id);
-
-                CreatedHistoryDto LinkRequest = new() { History_of = client.Id, Performed_By_Id = userId, Task_Performed = "Unlinked", Description = $"Contact was Unlinked from client " };
-                CreatedHistoryDto LeadUnlinkRequest = new() { History_of = lead_id, Performed_By_Id = userId, Task_Performed = "Unlinked", Description = $"lead was Unlinked from client {client.Name}" };
+                var client = await _clientService.UnLinkLead(Id, leadId);
+                var user = await _userService.GetUserById(userId);
+                var lead = await _leadService.UnLinkClientToLead(leadId, client.Id);
+                CreateHistory LinkRequest = new()
+                {
+                    HistoryOf = new TargetModel { Id = client.Id, Name = client.Name },
+                    PerformedBy = new UserMaskedResponse { Id = userId, Name = user.Name },
+                    TaskPerformed = NoteType.Unlinked,
+                    Description = $"{lead.Name} was Unlinked from client "
+                };
+                CreateHistory LeadUnlinkRequest = new()
+                {
+                    HistoryOf = new TargetModel
+                    {
+                        Id = lead.Id,
+                        Name = lead.Name,
+                    },
+                    PerformedBy = new UserMaskedResponse { Id = userId, Name = user.Name },
+                    TaskPerformed = NoteType.Unlinked,
+                    Description = $"{lead.Name} was Unlinked from client {client.Name}"
+                };
                 await _historyService.CreatedHistory(LinkRequest);
                 await _historyService.CreatedHistory(LeadUnlinkRequest);
 
@@ -298,30 +352,36 @@ namespace Task_backend.Controllers
 
 
 
-                var client = await _clientService.LinkLead(Id, lead_id);
-
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (String.IsNullOrEmpty(userId))
                 {
                     return Unauthorized();
                 }
-                var lead = client.Contact_Details.FirstOrDefault(x => x.Id == lead_id);
+
+                var client = await _clientService.LinkLead(Id, lead_id);
+
+                var lead = await _leadService.LinkClientToLead(lead_id, client.Id);
+                var user = await _userService.GetUserById(userId);
                 if (lead != null)
                 {
-                    var clientHistory = new CreatedHistoryDto
+                    var clientHistory = new CreateHistory
                     {
-                        History_of = client.Id,
-                        Performed_By_Id = userId,
-                        Task_Performed = "Linked",
-                        Description = $"Contact {lead.Name} was linked to Client"
+                        HistoryOf = new TargetModel { Id = client.Id, Name = client.Name },
+                        PerformedBy = new UserMaskedResponse { Id = userId, Name = user.Name },
+                        TaskPerformed = NoteType.Linked,
+                        Description = $"{lead.Name} was linked to client  "
                     };
 
-                    var leadHistory = new CreatedHistoryDto
+                    var leadHistory = new CreateHistory
                     {
-                        History_of = lead.Id,
-                        Performed_By_Id = userId,
-                        Task_Performed = "Linked",
-                        Description = $"{lead.Name} was linked to Client {client.Name}"
+                        HistoryOf = new TargetModel
+                        {
+                            Id = lead.Id,
+                            Name = lead.Name,
+                        },
+                        PerformedBy = new UserMaskedResponse { Id = userId, Name = user.Name },
+                        TaskPerformed = NoteType.Linked,
+                        Description = $"{lead.Name} was linked to client {client.Name}"
                     };
 
                     await Task.WhenAll(

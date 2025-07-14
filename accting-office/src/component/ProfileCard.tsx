@@ -1,12 +1,17 @@
 import type { FC } from "react";
 import type { ClientInterface, LeadsInterface } from "../types";
 import { ActionButton,  Label, Stack, Text } from "@fluentui/react";
+import { useLocation } from "react-router-dom";
+import { ClientTypeCnversion, LeadTypeCnversion, StatusConversion } from "../utils/EnumtoString";
 
 interface proilfeprops {
   data: LeadsInterface | ClientInterface;
   OpenForm: (isOpen: boolean)=> void
 }
 const ProfileCard: FC<proilfeprops> = ({ data , OpenForm }) => {
+  const location = useLocation()
+  const path = location.pathname.split("/")[1];
+
   return (
     <Stack tokens={{childrenGap:10 , padding:10}}>
       <Stack
@@ -41,7 +46,7 @@ const ProfileCard: FC<proilfeprops> = ({ data , OpenForm }) => {
             </Stack>
             <Stack horizontal horizontalAlign="start" style={{ width: "30%" }}>
               <Text>
-                <Label>Type: </Label> {data.type}
+                <Label>Type: </Label> {path=="lead" ? LeadTypeCnversion[data.type]: ClientTypeCnversion[data.type]}
               </Text>
             </Stack>
           </Stack>
@@ -67,7 +72,7 @@ const ProfileCard: FC<proilfeprops> = ({ data , OpenForm }) => {
                 style={{ width: "30%" }}
               >
                 <Text>
-                  <Label>Status: </Label> {data.status}
+                  <Label>Status: </Label> {StatusConversion[data.status]}
                 </Text>
               </Stack>
             )}

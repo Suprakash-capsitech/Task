@@ -17,6 +17,7 @@ import CustomSelect from "./common/CustomSelect";
 import type { CustomFormprops } from "../types/props";
 import type { ClientInterface } from "../types";
 import { countries } from "../utils/ListsOptions";
+import { ClientTypeCnversion, StatusConversion } from "../utils/EnumtoString";
 const ClientSchema = object({
   name: string().required("Name is required"),
   address: object({
@@ -45,7 +46,7 @@ const ClientSchema = object({
       "Status must be either 'active' or 'inactive'"
     )
     .required("Status is required"),
-  contact_Ids: array().of(string()).optional(),
+  contactIds: array().of(string()).optional(),
 });
 interface clientUpdateform extends CustomFormprops {
   value: ClientInterface;
@@ -114,8 +115,8 @@ const ClientUpdateForm = ({
     initialValues: {
       name: value.name,
       email: value.email,
-      type: value.type,
-      status: value.status,
+      type: ClientTypeCnversion[value.type],
+      status: StatusConversion[value.status],
       address: {
         street: value.address.street,
         area: value.address.area,
@@ -124,7 +125,7 @@ const ClientUpdateForm = ({
         pincode: value.address.pincode,
         country: value.address.country,
       },
-      contact_Ids: value.contact_Ids,
+      contactIds: value.contactIds,
     },
     validationSchema: ClientSchema,
     onSubmit: async (values) => {
@@ -139,7 +140,7 @@ const ClientUpdateForm = ({
           resetForm();
         }
       } catch (error) {
-        console.log(error);
+        // console.log(error);
       }
     },
   });
@@ -152,7 +153,8 @@ const ClientUpdateForm = ({
     errors,
     dirty,
     setFieldValue,
-    isValid,resetForm
+    isValid,
+    resetForm,
   } = formik;
   return (
     <Panel
@@ -357,6 +359,7 @@ const ClientUpdateForm = ({
                   }}
                 ></TextField>
                 <Dropdown
+                
                   placeholder="Select a country"
                   selectedKey={values.address.country}
                   onChange={(_, option) =>

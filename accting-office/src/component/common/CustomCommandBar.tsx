@@ -38,24 +38,24 @@ const CustomCommandBar = ({
   const location = useLocation();
   const path = location.pathname.split("/")[1];
   const Cretriaitems: IDropdownOption[] = [
-    { key: "status", text: "Status" },
+    { key: "Status", text: "Status" },
     {
-      key: "type",
+      key: "Type",
       text: "Type",
     },
   ];
   const LeadCretriaitems: IDropdownOption[] = [
-    { key: "status", text: "Status" },
+    { key: "Status", text: "Status" },
   ];
   const valueitems: Record<string, IDropdownOption[]> = {
-    status: [
+    Status: [
       { key: "active", text: "Active" },
       {
         key: "inactive",
         text: "In-Active",
       },
     ],
-    type: [
+    Type: [
       { key: "limited", text: "limited" },
       {
         key: "individual",

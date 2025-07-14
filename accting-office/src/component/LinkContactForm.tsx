@@ -71,7 +71,7 @@ const LinkContactForm = ({
           setContacts(response.data);
         }
       } catch (error) {
-        console.log(error);
+        // console.log(error);
       }
     };
     getAllContacts();
@@ -94,7 +94,7 @@ const LinkContactForm = ({
           resetForm();
         }
       } catch (error) {
-        console.log(error);
+        // console.log(error);
       }
     },
   });

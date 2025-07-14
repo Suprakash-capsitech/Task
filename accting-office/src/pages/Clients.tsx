@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import CustomCommandBar from "../component/common/CustomCommandBar";
 import {
-  DefaultButton,
   DetailsList,
   DetailsListLayoutMode,
   Dropdown,
@@ -18,6 +17,7 @@ import type { ClientInterface } from "../types";
 import { useNavigate } from "react-router-dom";
 import CustomBreadCrum from "../component/common/CustomBreadCrum";
 import CreateClientForm from "../component/CreateClientForm";
+import { ClientTypeCnversion, StatusConversion } from "../utils/EnumtoString";
 // import ClientUpdateForm from "../component/ClientUpdateForm";
 
 const Clients = () => {
@@ -68,7 +68,7 @@ const Clients = () => {
         setisloading(false);
       }
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     } finally {
       setisloading(false);
     }
@@ -130,6 +130,13 @@ const Clients = () => {
         minWidth: 150,
         isResizable: true,
         isSorted: false,
+        onRender: (item: ClientInterface) =>{
+          return(
+            <Text>
+              {ClientTypeCnversion[item.type as number]}
+            </Text>
+          )
+        }
       },
       {
         key: "address",
@@ -147,24 +154,24 @@ const Clients = () => {
         isResizable: true,
         onRender: (item: ClientInterface) => (
           <Text
-            onClick={() => navigate(`/lead/${item?.contact_Details[0]?.id}`)}
+            onClick={() => navigate(`/lead/${item?.contactDetails[0]?.id}`)}
             style={{
               color: "#0078d4",
               cursor: "pointer",
               textDecoration: "underline",
             }}
           >
-            {item?.contact_Details ? item?.contact_Details[0]?.name : ""}
+            {item?.contactDetails ? item?.contactDetails[0]?.name : ""}
           </Text>
         ),
       },
       {
         key: "created_By",
         name: "Created By",
-        fieldName: "created_By.name",
+        fieldName: "createdBy.name",
         minWidth: 150,
         isResizable: true,
-        onRender: (item: ClientInterface) => item.created_By?.name,
+        onRender: (item: ClientInterface) => item.createdBy?.name,
       },
       {
         key: "createdAt",
@@ -180,41 +187,30 @@ const Clients = () => {
           }),
       },
       {
-        key: "actions",
-        name: "Actions",
-        fieldName: "actions",
-        minWidth: 150,
-
-        isResizable: true,
-        onRender: (item: ClientInterface) => (
-          <Stack horizontal tokens={{ childrenGap: 8 }}>
-            {/* <DefaultButton
-              iconProps={{ iconName: "Edit" }}
-              title="Edit"
-              ariaLabel="Edit"
-              styles={{ root: { minWidth: 32, padding: 4, border: 0 } }}
-              onClick={() => setopenModal(item)}
-            /> */}
-            <DefaultButton
-              iconProps={{ iconName: "Delete" }}
-              title="Delete"
-              ariaLabel="Delete"
-              styles={{ root: { minWidth: 32, padding: 4, border: 0 } }}
-              onClick={async () => {
-                try {
-                  const response = await axiosPrivate.delete(
-                    `/Client/deleteclient/${item.id}`
-                  );
-                  if (response) {
-                    GetClients();
-                  }
-                } catch (error) {
-                  console.log(error);
-                }
-              }}
-            />
-          </Stack>
-        ),
+      key: "status",
+              name: "Status",
+              fieldName: "status",
+              minWidth: 100,
+              isResizable: true,
+              onRender: (item: ClientInterface) => (
+                <Text
+                  style={{
+                    color:
+                      item.status === 1
+                        ? " rgb(16, 124, 16)"
+                        : "rgb(50, 49, 48)",
+                    backgroundColor:
+                      item.status === 1
+                        ? "rgb(223, 246, 221)"
+                        : "rgb(255, 244, 206)",
+                    padding: "4px 8px",
+                    borderRadius: 4,
+                    display: "inline-block",
+                  }}
+                >
+                  {StatusConversion[item.status]}
+                </Text>
+              ),
       },
     ];
     setColumns(initialColumns);
@@ -305,7 +301,15 @@ const Clients = () => {
               }}
             />
             {clientlist.length === 0 ? (
-              <></>
+              <Stack
+                styles={{
+                  root: {
+                    alignItems: "center",
+                  },
+                }}
+              >
+                <Text>No Content</Text>
+              </Stack>
             ) : (
               <Stack
                 horizontal

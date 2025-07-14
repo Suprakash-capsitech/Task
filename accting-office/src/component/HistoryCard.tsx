@@ -1,92 +1,100 @@
-import type { HistoryInterface } from "../types";
-import { ActivityItem, Icon, Stack } from "@fluentui/react";
+import { ActivityItem, Icon, Stack, Text } from "@fluentui/react";
 import { useEffect, useState } from "react";
-import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import { useLocation } from "react-router-dom";
+import useAxiosPrivate from "../hooks/useAxiosPrivate";
+import type { HistoryInterface } from "../types";
 
-const iconNames: Record<
-  "Created" | "Updated" | "Deleted" | "Linked" | "Unlinked",
-  string
-> = {
-  Created: "add",
-  Updated: "edit",
-  Deleted: "delete",
-  Linked: "link",
-  Unlinked: "Removelink",
+
+
+const iconNames: Record<number, string> = {
+  0: "question",
+  1: "add",
+  2: "edit",
+  3: "delete",
+  4: "link",
+  5: "Removelink",
 };
-const DescriptionColor: Record<
-  "Created" | "Updated" | "Deleted" | "Linked" | "Unlinked",
-  string
-> = {
-  Created: "green",
-  Updated: "green",
-  Deleted: "red",
-  Linked: "rgb(0, 120, 212)",
-  Unlinked: "rgb(121, 119, 117)",
+
+const DescriptionColor: Record<number, string> = {
+  0: "black",
+  1: "green",
+  2: "green",
+  3: "red",
+  4: "rgb(0, 120, 212)",
+  5: "rgb(121, 119, 117)",
 };
+
 const HistoryCard = () => {
-  const [history, sethistory] = useState<HistoryInterface[]>();
-
-  const [isloading, setisloading] = useState<boolean>(false);
+  const [history, setHistory] = useState<HistoryInterface[]>();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const axiosPrivate = useAxiosPrivate();
   const location = useLocation();
   const path = location.pathname.split("/")[2];
-  const GetHistory = async () => {
-    setisloading(true);
+
+  const getHistory = async () => {
+    setIsLoading(true);
     try {
       const response = await axiosPrivate(`/History/history/${path}`);
-
       if (response.data) {
-        sethistory(response.data);
-        setisloading(false);
+        setHistory(response.data);
       }
     } catch (error) {
-      console.log(error);
+      // console.error("Failed to fetch history:", error);
     } finally {
-      setisloading(false);
+      setIsLoading(false);
     }
   };
+
   useEffect(() => {
-    GetHistory();
+    getHistory();
   }, []);
+
   return (
     <Stack tokens={{ childrenGap: 12 }}>
-      {!isloading &&
+      {!isLoading &&
         history &&
-        history.map((Item, key) => {
-          const icon =
-            iconNames[Item.task_Performed as keyof typeof iconNames] || "Note";
-          const color =
-            DescriptionColor[Item.task_Performed as keyof typeof iconNames] ||
-            "black";
+        history.map((item, key) => {
+         
+          
+          const icon = iconNames[ item.taskPerfoemed as number] || "Note";
+          const color = DescriptionColor[ item.taskPerfoemed as number] || "black";
 
           return (
             <ActivityItem
+              key={key}
               activityIcon={<Icon iconName={icon} />}
-              activityDescription={`${Item.description} at ${new Date(
-                Item.createdAt
+              activityDescription={` at ${new Date(
+                item.createdAt
               ).toLocaleDateString("en", {
                 day: "2-digit",
                 month: "long",
                 year: "numeric",
-              })} ${new Date(Item.createdAt).toLocaleDateString("en", {
+              })} ${new Date(item.createdAt).toLocaleTimeString("en", {
                 hour: "2-digit",
                 minute: "2-digit",
-              })}`}
-              comments={`performed by ${Item.performed_By.name}`}
-              key={key}
+              })} by ${item.performedBy.name} `}
+              onRenderComments={()=>{
+                return(
+                  <Stack>
+                    {item.description.split('/').map((coms,key)=>( 
+                      <Text key={key}>
+                        {coms}
+                      </Text>
+                    ))}
+                  </Stack>
+
+                )
+              }}
               styles={{
                 activityTypeIcon: {
                   paddingInlineStart: 15,
                   paddingInlineEnd: 15,
-                  alignContent: "center",
                   fontSize: 20,
-
-                  color: color,
+                  color,
                 },
                 activityContent: {
                   paddingBottom: 15,
-                  color: color,
+                  color,
                 },
               }}
               style={{ borderBottom: "1px solid rgb(218, 218, 218)" }}

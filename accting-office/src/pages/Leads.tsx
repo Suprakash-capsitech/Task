@@ -1,5 +1,4 @@
 import {
-  DefaultButton,
   DetailsList,
   DetailsListLayoutMode,
   Dropdown,
@@ -20,8 +19,8 @@ import CreateLeadForm from "../component/CreateLeadForm";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import type { LeadsInterface } from "../types";
 import { useNavigate } from "react-router-dom";
+import { LeadTypeCnversion, StatusConversion } from "../utils/EnumtoString";
 // import LeadUpdateForm from "../component/LeadUpdateForm";
-import { isAxiosError } from "axios";
 
 const Leads = () => {
   const [isOpen, setisOpen] = useState<boolean>(false);
@@ -70,7 +69,7 @@ const Leads = () => {
         setisloading(false);
       }
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     } finally {
       setisloading(false);
     }
@@ -139,21 +138,28 @@ const Leads = () => {
         minWidth: 150,
         isResizable: true,
         isSorted: false,
+        onRender: (item:LeadsInterface)=>{
+          return (
+            <Text>
+              {LeadTypeCnversion[item.type]}
+            </Text>
+          )
+        }
       },
       {
         key: "phone",
         name: "Phone Number",
-        fieldName: "phone_Number",
+        fieldName: "phoneNumber",
         minWidth: 180,
         isResizable: true,
       },
       {
-        key: "created_By",
+        key: "createdBy",
         name: "Created By",
-        fieldName: "created_By.name",
+        fieldName: "createdBy.name",
         minWidth: 180,
         isResizable: true,
-        onRender: (item: LeadsInterface) => item.created_By?.name,
+        onRender: (item: LeadsInterface) => item.createdBy?.name,
       },
       {
         key: "createdAt",
@@ -169,44 +175,25 @@ const Leads = () => {
           }),
       },
       {
-        key: "actions",
-        name: "Actions",
-        fieldName: "actions",
+        key: "status",
+        name: "Status",
+        fieldName: "status",
         minWidth: 100,
-        maxWidth: 120,
-        isResizable: false,
+        isResizable: true,
         onRender: (item: LeadsInterface) => (
-          <Stack horizontal tokens={{ childrenGap: 8 }}>
-            {/* <DefaultButton
-              iconProps={{ iconName: "Edit" }}
-              title="Edit"
-              ariaLabel="Edit"
-              styles={{ root: { minWidth: 32, padding: 4, border: 0 } }}
-              onClick={() => setopenModal(item)}
-            /> */}
-            <DefaultButton
-              iconProps={{ iconName: "Delete" }}
-              title="Delete"
-              ariaLabel="Delete"
-              styles={{ root: { minWidth: 32, padding: 4, border: 0 } }}
-              onClick={async () => {
-                try {
-                  const response = await axiosPrivate.delete(
-                    `/Lead/deletelead/${item.id}`
-                  );
-                  if (response) {
-                    GetLeads();
-                  }
-                } catch (error: unknown) {
-                  if (isAxiosError(error)) {
-                    alert(error.response?.data);
-                  } else {
-                    console.log(error);
-                  }
-                }
-              }}
-            />
-          </Stack>
+          <Text
+            style={{
+              color:
+                item.status === 1 ? " rgb(16, 124, 16)" : "rgb(50, 49, 48)",
+              backgroundColor:
+                item.status === 1 ? "rgb(223, 246, 221)" : "rgb(255, 244, 206)",
+              padding: "4px 8px",
+              borderRadius: 4,
+              display: "inline-block",
+            }}
+          >
+            {StatusConversion[item.status]}
+          </Text>
         ),
       },
     ];
@@ -299,7 +286,15 @@ const Leads = () => {
               }}
             />
             {leads.length === 0 ? (
-              <></>
+              <Stack
+                styles={{
+                  root: {
+                    alignItems: "center",
+                  },
+                }}
+              >
+                <Text>No Content</Text>
+              </Stack>
             ) : (
               <Stack
                 horizontal

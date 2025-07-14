@@ -54,7 +54,7 @@ const ClientSchema = object({
       "Status must be either 'active' or 'inactive'"
     )
     .required("Status is required"),
-  contact_Ids: array().of(string()).optional(),
+  contactIds: array().of(string()).optional(),
 });
 
 const CreateClientForm = ({
@@ -104,7 +104,7 @@ const CreateClientForm = ({
           setContacts(response.data);
         }
       } catch (error) {
-        console.log(error);
+        // console.log(error);
       }
     };
     getAllContacts();
@@ -125,7 +125,7 @@ const CreateClientForm = ({
         pincode: "",
         country: "",
       },
-      contact_Ids: [],
+      contactIds: [],
     },
     validationSchema: ClientSchema,
     onSubmit: async (values) => {
@@ -140,7 +140,7 @@ const CreateClientForm = ({
           resetForm();
         }
       } catch (error) {
-        console.log(error);
+        // console.log(error);
       }
     },
   });
@@ -438,7 +438,7 @@ const CreateClientForm = ({
                     const selected = items || [];
                     setSelectedTags(selected);
                     setFieldValue(
-                      "contact_Ids",
+                      "contactIds",
                       selected.map((item) => item.key)
                     );
                   }}

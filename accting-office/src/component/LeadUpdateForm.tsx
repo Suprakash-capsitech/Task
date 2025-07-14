@@ -13,6 +13,7 @@ import Custominput from "./common/Custominput";
 import CustomSelect from "./common/CustomSelect";
 import type { LeadsInterface } from "../types";
 import type { CustomFormprops } from "../types/props";
+import { LeadTypeCnversion, StatusConversion } from "../utils/EnumtoString";
 const LeadSchema = object({
   name: string().required("Name is required"),
   email: string()
@@ -27,7 +28,7 @@ const LeadSchema = object({
   status: string()
     .oneOf(["active", "inactive"], "Type must be either 'active' or 'inactive'")
     .required("Type is required"),
-  phone_number: string()
+  phoneNumber: string()
     .matches(/^\d{10}$/, "Phone number must be exactly 10 digits")
     .required("Phone number is required"),
 });
@@ -45,9 +46,9 @@ const LeadUpdateForm = ({
     initialValues: {
       name: value.name,
       email: value.email,
-      type: value.type,
-      phone_number: value.phone_Number,
-      status: value.status,
+      type: LeadTypeCnversion[value.type],
+      phoneNumber: value.phoneNumber,
+      status: StatusConversion[value.status],
     },
     validationSchema: LeadSchema,
     onSubmit: async (values) => {
@@ -62,7 +63,7 @@ const LeadUpdateForm = ({
           resetForm();
         }
       } catch (error) {
-        console.log(error);
+        // console.log(error);
       }
     },
   });
@@ -146,16 +147,16 @@ const LeadUpdateForm = ({
             >
               <Stack style={{ width: "50%" }}>
                 <Custominput
-                  name="phone_number"
+                  name="phoneNumber"
                   type="text"
                   classname=" border-0"
                   placeholder="Phone Number"
-                  value={values.phone_number}
+                  value={values.phoneNumber}
                   onChange={handleChange}
                   onBlur={handleBlur}
                 />
                 <Text className="error">
-                  {touched.phone_number && errors.phone_number}
+                  {touched.phoneNumber && errors.phoneNumber}
                 </Text>
               </Stack>
               <Stack style={{ width: "50%" }}>

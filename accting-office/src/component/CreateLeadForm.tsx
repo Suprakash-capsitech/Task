@@ -17,6 +17,7 @@ import type { CustomFormprops } from "../types/props";
 import Select from "react-select";
 import { useEffect, useState } from "react";
 import type { ClientInterface } from "../types";
+import { ClientTypeCnversion } from "../utils/EnumtoString";
 const LeadSchema = object({
   name: string().required("Name is required"),
   email: string()
@@ -28,11 +29,11 @@ const LeadSchema = object({
   type: string()
     .oneOf(["lead", "contact"], "Type must be either 'lead' or 'contact'")
     .required("Type is required"),
-  phone_number: string()
+  phoneNumber: string()
     .matches(/^\d{10}$/, "Phone number must be exactly 10 digits")
     .required("Phone number is required"),
 
-  client_id: string().optional(),
+  clientId: string().optional(),
 });
 const CreateLeadForm = ({
   OpenForm,
@@ -51,8 +52,8 @@ const CreateLeadForm = ({
       name: "",
       email: "",
       type: "",
-      phone_number: "",
-      client_id: "",
+      phoneNumber: "",
+      clientId: "",
     },
     validationSchema: LeadSchema,
     onSubmit: async (values) => {
@@ -64,7 +65,7 @@ const CreateLeadForm = ({
           resetForm();
         }
       } catch (error) {
-        console.log(error);
+        // console.log(error);
       }
     },
   });
@@ -86,7 +87,7 @@ const CreateLeadForm = ({
         setClient(response.data);
       }
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     }
   };
 
@@ -96,7 +97,7 @@ const CreateLeadForm = ({
   useEffect(() => {
     setclientlist(
       client
-        ?.filter((item) => item.type === clientType)
+        ?.filter((item) => ClientTypeCnversion[item.type] === clientType)
         .map((item) => ({
           value: item.id,
           label: item.name,
@@ -169,16 +170,16 @@ const CreateLeadForm = ({
             >
               <Stack style={{ width: "50%" }}>
                 <Custominput
-                  name="phone_number"
+                  name="phoneNumber"
                   type="text"
                   classname=" border-0"
                   placeholder="Phone Number"
-                  value={values.phone_number}
+                  value={values.phoneNumber}
                   onChange={handleChange}
                   onBlur={handleBlur}
                 />
                 <Text className="error">
-                  {touched.phone_number && errors.phone_number}
+                  {touched.phoneNumber && errors.phoneNumber}
                 </Text>
               </Stack>
               <Stack style={{ width: "50%" }}>
@@ -249,7 +250,7 @@ const CreateLeadForm = ({
                   <Label>Business Name </Label>
                   <Select
                     options={clientlist}
-                    onChange={(item) => setFieldValue("client_id", item?.value)}
+                    onChange={(item) => setFieldValue("clientId", item?.value)}
                   />
                 </Stack>
               </Stack>

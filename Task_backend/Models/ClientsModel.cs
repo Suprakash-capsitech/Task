@@ -10,28 +10,24 @@ namespace Task_backend.Models
         [BsonId]
         [BsonElement("_id"), BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; } = string.Empty;
-        [BsonElement("name"), BsonRepresentation(BsonType.String)]
+        [ BsonRepresentation(BsonType.String)]
         public required string Name { get; set; }
-        [BsonElement("email"), BsonRepresentation(BsonType.String)]
+        [ BsonRepresentation(BsonType.String)]
         public required string Email { get; set; }
-        [BsonElement("type"), BsonRepresentation(BsonType.String)]
-        public required string Type { get; set; }
-        [BsonElement("status"), BsonRepresentation(BsonType.String)]
-        public required string Status { get; set; }
-        [BsonElement("address")]
+        public required ClientType Type { get; set; }
+        public required ClientStatus Status { get; set; }
         public required AddressType Address { get; set; }
-        [BsonElement("created_by"), BsonRepresentation(BsonType.ObjectId)]
-        public required string Created_By_Id { get; set; }
-        [BsonElement("createdAt")]
+        [ BsonRepresentation(BsonType.ObjectId)]
+        public required string CreatedById { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        [BsonElement("contact_ids"), BsonRepresentation(BsonType.ObjectId)]
-        public  string[]? Contact_Ids { get; set; }
+        [ BsonRepresentation(BsonType.ObjectId)]
+        public string[]? ContactIds { get; set; }
 
         [BsonIgnore]
-        public UserMaskedResponse? Created_By { get; set; }
+        public UserMaskedResponse? CreatedBy { get; set; }
 
         [BsonIgnore]
-        public LeadsModel[]? Contact_Details { get; set; }
+        public LeadsModel[]? ContactDetails { get; set; }
 
     }
     public enum ClientTypeEnum

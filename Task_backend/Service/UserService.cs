@@ -93,5 +93,21 @@ namespace Task_backend.Service
             await _dbContext.Users.FindOneAndUpdateAsync(x=> x.Token== token,updateDefinition,options);
             return;
         }
+
+        public async Task<UsersModel> GetUserById(string UserId)
+        {
+            try
+            {
+                var user = await _dbContext.Users.Find(x => x.Id == UserId).FirstOrDefaultAsync();
+                
+                return user;
+
+            }
+            catch (Exception)
+            {
+
+                throw new Exception("Database Error");
+            }
+        }
     }
 }

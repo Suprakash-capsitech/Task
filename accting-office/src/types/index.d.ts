@@ -2,32 +2,32 @@ export interface LeadsInterface {
   id: string;
   name: string;
   email: string;
-  type: string;
-  status: string;
-  phone_Number: string;
-  created_By_id: string;
+  type: LeadType;
+  status: Status;
+  phoneNumber: string;
+  createdByid: string;
   createdAt: string;
-  created_By: UserInterface;
+  createdBy: UserInterface;
 }
 export interface ClientInterface {
   id: string;
   name: string;
   email: string;
-  type: string;
-  status: string;
+  type: ClientType;
+  status: Status;
   address: {
-     street: string,
-    area: string,
-    city: string,
-    county: string,
-    pincode: string,
-    country: string
+    street: string;
+    area: string;
+    city: string;
+    county: string;
+    pincode: string;
+    country: string;
   };
-  created_By_id: string;
+  createdByid: string;
   createdAt: string;
-  created_By: UserInterface;
-  contact_Ids: [],
-  contact_Details: LeadsInterface[];
+  createdBy: UserInterface;
+  contactIds: [];
+  contactDetails: LeadsInterface[];
 }
 
 export interface UserInterface {
@@ -37,10 +37,37 @@ export interface UserInterface {
 
 export interface HistoryInterface {
   id: string;
-  history_of: string;
+  historyOf: {
+    _id: string;
+    name: string;
+  };
   description: string;
-  task_Performed: string;
-  performed_By_Id: string;
-  performed_By: UserInterface;
+  taskPerfoemed: HistoryType;
+  performedBy: UserInterface;
   createdAt: string;
+}
+export enum Status {
+  Unknown,
+  Active,
+  Inactive,
+}
+export enum ClientType {
+  Unknown,
+  limited,
+  individual,
+  LLP,
+  Partnersihp,
+}
+export enum LeadType {
+  Unknown,
+  lead,
+  contact,
+}
+export enum HistoryType {
+  Unknown,
+  Created,
+  Updated,
+  Deleted,
+  Linked,
+  Unlinked,
 }

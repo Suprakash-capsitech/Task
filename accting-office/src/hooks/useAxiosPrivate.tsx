@@ -14,7 +14,9 @@ const useAxiosPrivate = () => {
     } catch (error) {
       alert("Login in Again please");
       localStorage.removeItem("token");
-      Navigate("/");
+      localStorage.removeItem("role");
+      localStorage.removeItem("name");
+      Navigate("/login");
     }
   };
 
