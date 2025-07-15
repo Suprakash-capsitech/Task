@@ -9,6 +9,12 @@ namespace Task_backend.Service
     public class JwtService(IConfiguration config) : IJwtService
     {
         private readonly IConfiguration _config = config;
+        /// <summary>
+        /// Generats a JWT token with 3 hours validity
+        /// </summary>
+        /// <param name="Id">User Id</param>
+        /// <param name="role">User Role</param>
+        /// <returns>Jwt token </returns>
         public string GenerateToken(string Id, string role)
         {
             var issuer = _config["JwtSettings:Issuer"];
@@ -34,6 +40,11 @@ namespace Task_backend.Service
             var accestoken = tokenHandler.WriteToken(securityToken);
             return accestoken;
         }
+        /// <summary>
+        /// Create a JWT token with 3 days validity
+        /// </summary>
+        /// <param name="Id">User Id</param>
+        /// <returns>Jwt token </returns>
         public String GenerateRefreshToken(string Id)
         {
             var issuer = _config["JwtSettings:Issuer"];
@@ -57,6 +68,11 @@ namespace Task_backend.Service
             var accestoken = tokenHandler.WriteToken(securityToken);
             return accestoken;
         }
+        /// <summary>
+        /// Validate the Jwt token 
+        /// </summary>
+        /// <param name="token">Jwt Token</param>
+        /// <returns>Boolena with the validated status</returns>
         public Boolean ValidateToken(string token)
         {
             var tokenHandler = new JwtSecurityTokenHandler();

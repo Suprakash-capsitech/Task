@@ -13,6 +13,11 @@ namespace Task_backend.Service
         public readonly IPasswordService _passwordService = passwordService;
         public readonly IJwtService _jwtService = jwtService;
 
+        /// <summary>
+        /// Login user using email and password
+        /// </summary>
+        /// <param name="Request">Dto to Login</param>
+        /// <returns>User Response with name, role,token</returns>
         public async Task<UserServiceResponse?> LoginUser(LoginRequest Request)
         {
             var filter = Builders<UsersModel>.Filter.Eq(x => x.Email, Request.Email);
@@ -38,6 +43,13 @@ namespace Task_backend.Service
                 return response;
             }
         }
+        /// <summary>
+        /// Create a user and login 
+        /// </summary>
+        /// <param name="Request">User dto</param>
+        /// <returns>a new user with name ,role and token </returns>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="Exception"></exception>
         public async Task<UserServiceResponse?> SignupUser(SignupRequest Request)
         {
             if (!Enum.TryParse<UserRoles>(Request.Role, true, out var typeEnum))
@@ -72,6 +84,12 @@ namespace Task_backend.Service
 
             return response;
         }
+        /// <summary>
+        /// Validate Refresh token and Generate a new Token if validated
+        /// </summary>
+        /// <param name="token">refresh token</param>
+        /// <returns>New Jwt Token with 3 hours validity</returns>
+        /// <exception cref="Exception"></exception>
         public async Task<String> RefreshToken(string token)
         {
 
@@ -88,6 +106,11 @@ namespace Task_backend.Service
 
         }
 
+        /// <summary>
+        /// Logout a user and remove refresh token from DB
+        /// </summary>
+        /// <param name="token">Refresh token</param>
+        /// <returns></returns>
         public async Task Logout(string token)
         {
             var updateDefinition = Builders<UsersModel>.Update.Set(t => t.Token, "");
@@ -96,6 +119,12 @@ namespace Task_backend.Service
             return;
         }
 
+        /// <summary>
+        /// Gets a specific user with id
+        /// </summary>
+        /// <param name="UserId">User Id</param>
+        /// <returns>User Object</returns>
+        /// <exception cref="Exception"></exception>
         public async Task<UsersModel> GetUserById(string UserId)
         {
             try
