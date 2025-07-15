@@ -128,7 +128,7 @@ namespace Task_backend.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<LeadsModel>> GetLeads([FromQuery] string? search, [FromQuery] string? filtertype, [FromQuery] string? filtervalue)
+        public async Task<ActionResult<LeadsModel>> GetLeads([FromQuery] string? search, [FromQuery] string? filtertype, [FromQuery] string? filtervalue, [FromQuery] int? pageNumber, [FromQuery] int? pageSize)
         {
             try
             {
@@ -139,7 +139,7 @@ namespace Task_backend.Controllers
                 if (!String.IsNullOrEmpty(role) && !String.IsNullOrEmpty(userId))
                 {
 
-                    var leadList = await _leadService.GetLeads(type, role, userId, search, filtertype, filtervalue);
+                    var leadList = await _leadService.GetLeads(type, role, userId, search, filtertype, filtervalue, pageNumber, pageSize);
                     return Ok(leadList);
                 }
                 else
@@ -162,7 +162,7 @@ namespace Task_backend.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<LeadsModel>> GetContacts([FromQuery] string? search, [FromQuery] string? filtertype, [FromQuery] string? filtervalue)
+        public async Task<ActionResult<LeadsModel>> GetContacts([FromQuery] string? search, [FromQuery] string? filtertype, [FromQuery] string? filtervalue, [FromQuery] int? pageNumber, [FromQuery] int? pageSize)
         {
             try
             {
@@ -172,7 +172,7 @@ namespace Task_backend.Controllers
                 if (!String.IsNullOrEmpty(role) && !String.IsNullOrEmpty(userId))
                 {
 
-                    var contactList = await _leadService.GetLeads(type, role, userId, search, filtertype, filtervalue);
+                    var contactList = await _leadService.GetLeads(type, role, userId, search, filtertype, filtervalue ,pageNumber, pageSize );
                     return Ok(contactList);
                 }
                 else

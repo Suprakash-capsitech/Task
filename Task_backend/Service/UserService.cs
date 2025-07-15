@@ -24,7 +24,7 @@ namespace Task_backend.Service
             else
             {
                 
-                string token = _jwtService.GenerateToken(exist.Id, exist.Role);
+                string token = _jwtService.GenerateToken(exist.Id, exist.Role.ToString());
                 string Refreshtoken = _jwtService.GenerateRefreshToken(exist.Id);
                 //update the token in the database
                 var options = new FindOneAndUpdateOptions<UsersModel>
@@ -33,13 +33,15 @@ namespace Task_backend.Service
                 };
                 var updateDef = Builders<UsersModel>.Update.Set(x => x.Token, Refreshtoken);
                 exist = await _dbContext.Users.FindOneAndUpdateAsync(x => x.Email == Request.Email, updateDef, options);
-                UserServiceResponse response = new() { Id = exist.Id, Email = exist.Email, Token = token, RefreshToken = exist.Token, Name = exist.Name, Role = exist.Role };
+                UserServiceResponse response = new() { Id = exist.Id, Email = exist.Email, Token = token, RefreshToken = exist.Token, Name = exist.Name, Role = exist.Role.ToString() };
 
                 return response;
             }
         }
         public async Task<UserServiceResponse?> SignupUser(SignupRequest Request)
         {
+            if (!Enum.TryParse<UserRoles>(Request.Role, true, out var typeEnum))
+                throw new ArgumentException("Invalid type value");
             var filter = Builders<UsersModel>.Filter.Eq(x => x.Email, Request.Email);
             var exist = await _dbContext.Users.Find(filter).FirstOrDefaultAsync();
 
@@ -48,10 +50,10 @@ namespace Task_backend.Service
                 throw new Exception("User Already exist");
             }
             string HashedPassword = _passwordService.HashedPassword(Request.Password);
-            UsersModel newuser = new() { Email = Request.Email, Name = Request.Name, Password = HashedPassword ,Role= Request.Role};
+            UsersModel newuser = new() { Email = Request.Email, Name = Request.Name, Password = HashedPassword ,Role= typeEnum };
             await _dbContext.Users.InsertOneAsync(newuser);
 
-            string token = _jwtService.GenerateToken(newuser.Id, newuser.Role);
+            string token = _jwtService.GenerateToken(newuser.Id, newuser.Role.ToString());
             string Refreshtoken = _jwtService.GenerateRefreshToken(newuser.Id);
 
             //update the token in the database
@@ -66,7 +68,7 @@ namespace Task_backend.Service
             
             // Mapping
             
-            UserServiceResponse response = new() { Id = newuser.Id, Email = newuser.Email, Token = token, RefreshToken = newuser.Token, Name = newuser.Name, Role = newuser.Role };
+            UserServiceResponse response = new() { Id = newuser.Id, Email = newuser.Email, Token = token, RefreshToken = newuser.Token, Name = newuser.Name, Role = newuser.Role.ToString() };
 
             return response;
         }
@@ -77,7 +79,7 @@ namespace Task_backend.Service
             bool result = _jwtService.ValidateToken(exist.Token);
             if (result)
             {
-                return _jwtService.GenerateToken(exist.Id, exist.Role);
+                return _jwtService.GenerateToken(exist.Id, exist.Role.ToString());
             }
             else
             {

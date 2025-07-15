@@ -11,16 +11,35 @@ namespace Task_backend.Service
     public class LeadService(DbContext dbcontext) : ILeadService
     {
         public readonly DbContext _dbContext = dbcontext;
+        /// <summary>
+        /// Creates a new lead and strores the user details 
+        /// </summary>
+        /// <param name="Req"></param>
+        /// <param name="userId"></param>
+        /// <returns>New Lead</returns>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="Exception"></exception>
         public async Task<LeadsModel> CreateLead(CreateLeadRequest Req, string userId)
         {
             try
             {
                 if (!Enum.TryParse<LeadType>(Req.Type, true, out var typeEnum))
                     throw new ArgumentException("Invalid type value");
-                LeadsModel newLead = new() { Name = Req.Name, Email = Req.Email, CreatedById = userId, Type = typeEnum, PhoneNumber = Req.PhoneNumber, ClientIds = string.IsNullOrEmpty(Req.ClientId) ? new List<string>() : new List<string> { Req.ClientId } };
+                LeadsModel newLead = new()
+                {
+                    Name = Req.Name,
+                    Email = Req.Email,
+                    CreatedById = userId,
+                    Type = typeEnum,
+                    PhoneNumber = Req.PhoneNumber,
+                    ClientIds = string.IsNullOrEmpty(Req.ClientId) ? [] : [Req.ClientId],
+                    CreatedBy = await _dbContext.Users.Find(x => x.Id == userId).Project(u => new UserMaskedResponse
+                    {
+                        Id = u.Id,
+                        Name = u.Name
+                    }).FirstOrDefaultAsync()
+                };
                 await _dbContext.Leads.InsertOneAsync(newLead);
-                UsersModel user = await _dbContext.Users.Find(x => x.Id == userId).FirstOrDefaultAsync();
-                newLead.CreatedBy = new UserMaskedResponse() { Id = user.Id, Name = user.Name };
                 return newLead;
             }
             catch (Exception)
@@ -28,10 +47,13 @@ namespace Task_backend.Service
 
                 throw new Exception("Database Error");
             }
-
-
         }
-
+        /// <summary>
+        /// Soft Deletes the Lead
+        /// </summary>
+        /// <param name="Id"></param>
+        /// <returns>Updated Lead Response</returns>
+        /// <exception cref="Exception"></exception>
         public async Task<LeadsModel> DeleteLead(string Id)
         {
             try
@@ -45,68 +67,28 @@ namespace Task_backend.Service
                 throw new Exception("Database error");
             }
         }
-
+        /// <summary>
+        /// Gets all the entries of the Leads collections 
+        /// </summary>
+        /// <param name="role"> User Role</param>
+        /// <param name="userId"> User Id</param>
+        /// <returns>List of Leads</returns>
+        /// <exception cref="Exception"></exception>
         public async Task<IEnumerable<LeadsModel>> GetAll(string role, string userId)
         {
             try
             {
-                if (role == "admin")
+                var AdminFilter = Builders<LeadsModel>.Filter.Empty;
+                if (role != "Admin")
                 {
+                    var rolefilter = Builders<LeadsModel>.Filter.Eq(x => x.CreatedById, userId);
+                    AdminFilter = Builders<LeadsModel>.Filter.And(AdminFilter, rolefilter);
 
-                    var leadslist = await _dbContext.Leads.Find(x => true).ToListAsync();
-
-                    var userIds = leadslist.Select(l => l.CreatedById).Distinct().ToList();
-
-                    var filter = Builders<UsersModel>.Filter.In(u => u.Id, userIds);
-                    var users = await _dbContext.Users.Find(filter)
-                        .Project(u => new UserMaskedResponse
-                        {
-                            Id = u.Id,
-                            Name = u.Name
-                        }).ToListAsync();
-
-                    var userDict = users.ToDictionary(u => u.Id, u => u);
-
-                    foreach (var lead in leadslist)
-                    {
-                        if (userDict.TryGetValue(lead.CreatedById, out var maskedUser))
-                        {
-                            lead.CreatedBy = maskedUser;
-                        }
-                    }
-
-
-
-                    return (leadslist);
-                }
-                else
-                {
-                    var leadslist = await _dbContext.Leads.Find(x => x.CreatedById == userId).ToListAsync();
-                    var userIds = leadslist.Select(l => l.CreatedById).Distinct().ToList();
-
-                    var filter = Builders<UsersModel>.Filter.In(u => u.Id, userIds);
-                    var users = await _dbContext.Users.Find(filter)
-                        .Project(u => new UserMaskedResponse
-                        {
-                            Id = u.Id,
-                            Name = u.Name
-                        }).ToListAsync();
-
-                    var userDict = users.ToDictionary(u => u.Id, u => u);
-
-                    foreach (var lead in leadslist)
-                    {
-                        if (userDict.TryGetValue(lead.CreatedById, out var maskedUser))
-                        {
-                            lead.CreatedBy = maskedUser;
-                        }
-                    }
-
-
-
-                    return (leadslist);
                 }
 
+                var leadslist = await _dbContext.Leads.Find(AdminFilter).ToListAsync();
+
+                return (leadslist);
 
             }
             catch (Exception)
@@ -115,7 +97,13 @@ namespace Task_backend.Service
                 throw new Exception("Database Error");
             }
         }
-
+        /// <summary>
+        /// Get all the leads that are linked to the client Id
+        /// </summary>
+        /// <param name="Id">Client Id</param>
+        /// <returns>List of Leads </returns>
+        /// <exception cref="Exception"></exception>
+       
         public async Task<IEnumerable<LeadsModel>> GetLeadByClientId(string Id)
         {
             try
@@ -132,68 +120,12 @@ namespace Task_backend.Service
             }
         }
 
-        //public async Task<IEnumerable<LeadsModel>> GetContacts(string type, string role, string userId)
-        //{
-        //    try
-        //    {
-        //        if (role == "admin")
-        //        {
-
-        //            var leadslist = await _dbContext.Leads.Find(x => x.Type == "contact").ToListAsync();
-        //            var userIds = leadslist.Select(l => l.Created_By_Id).Distinct().ToList();
-
-        //            var filter = Builders<UsersModel>.Filter.In(u => u.Id, userIds);
-        //            var users = await _dbContext.Users.Find(filter)
-        //                .Project(u => new UserMaskedResponse
-        //                {
-        //                    Id = u.Id,
-        //                    Name = u.Name
-        //                }).ToListAsync();
-
-        //            var userDict = users.ToDictionary(u => u.Id, u => u);
-
-        //            foreach (var lead in leadslist)
-        //            {
-        //                if (userDict.TryGetValue(lead.Created_By_Id, out var maskedUser))
-        //                {
-        //                    lead.Created_By = maskedUser;
-        //                }
-        //            }
-        //            return (leadslist);
-        //        }
-        //        else
-        //        {
-        //            var leadslist = await _dbContext.Leads.Find(x => x.Type == "contact" && x.Created_By_Id == userId).ToListAsync();
-        //            var userIds = leadslist.Select(l => l.Created_By_Id).Distinct().ToList();
-
-        //            var filter = Builders<UsersModel>.Filter.In(u => u.Id, userIds);
-        //            var users = await _dbContext.Users.Find(filter)
-        //                .Project(u => new UserMaskedResponse
-        //                {
-        //                    Id = u.Id,
-        //                    Name = u.Name
-        //                }).ToListAsync();
-
-        //            var userDict = users.ToDictionary(u => u.Id, u => u);
-
-        //            foreach (var lead in leadslist)
-        //            {
-        //                if (userDict.TryGetValue(lead.Created_By_Id, out var maskedUser))
-        //                {
-        //                    lead.Created_By = maskedUser;
-        //                }
-        //            }
-        //            return (leadslist);
-        //        }
-
-
-        //    }
-        //    catch (Exception)
-        //    {
-
-        //        throw new Exception("Database Error");
-        //    }
-        //}
+        /// <summary>
+        /// Finds and returns the unique lead requested using Id
+        /// </summary>
+        /// <param name="Id">Lead Id</param>
+        /// <returns>Lead</returns>
+        /// <exception cref="Exception"></exception>
 
         public async Task<LeadsModel> GetLeadById(string Id)
         {
@@ -201,9 +133,7 @@ namespace Task_backend.Service
             try
             {
                 LeadsModel lead = await _dbContext.Leads.Find(x => x.Id == Id).FirstOrDefaultAsync();
-                UsersModel user = await _dbContext.Users.Find(x => x.Id == lead.CreatedById).FirstOrDefaultAsync();
-                lead.CreatedBy = new UserMaskedResponse() { Id = user.Id, Name = user.Name };
-
+                
                 return lead;
 
             }
@@ -215,109 +145,57 @@ namespace Task_backend.Service
 
         }
 
-        public async Task<IEnumerable<LeadsModel>> GetLeads(string type, string role, string userId, string? search, string? filtertype, string? filtervalue)
+        /// <summary>
+        /// Returns the leads/Contact of the loggedin user or all to admin
+        /// </summary>
+        /// <param name="type">Lead Type</param>
+        /// <param name="role"> User Role</param>
+        /// <param name="userId">User Id</param>
+        /// <param name="search">Search Params</param>
+        /// <param name="filtertype">Field Params</param>
+        /// <param name="filtervalue">Field Value params</param>
+        /// <returns>List of Leads</returns>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="Exception"></exception>
+        public async Task<PaginatedLeadResult> GetLeads(string type, string role, string userId, string? search, string? filtertype, string? filtervalue, int? pageNumber, int? pageSize)
         {
             try
             {
-                if (role == "admin")
+                if (!Enum.TryParse<LeadType>(type, true, out var typeEnum))
+                    throw new ArgumentException("Invalid type value");
+                var leadfilter = Builders<LeadsModel>.Filter.Eq(x => x.Type, typeEnum);
+                if (role != "Admin")
                 {
-                    if (!Enum.TryParse<LeadType>(type, true, out var typeEnum))
-                        throw new ArgumentException("Invalid type value");
-                    var leadfilter = Builders<LeadsModel>.Filter.Eq(x => x.Type, typeEnum);
 
-                    if (!string.IsNullOrEmpty(search))
-                    {
-                        var searchFilter = Builders<LeadsModel>.Filter.Or(
-                            Builders<LeadsModel>.Filter.Regex("name", new BsonRegularExpression(search, "i")),
-                            Builders<LeadsModel>.Filter.Regex("email", new BsonRegularExpression(search, "i"))
-                        );
-
-                        leadfilter = Builders<LeadsModel>.Filter.And(leadfilter, searchFilter);
-                    }
-                    if (!string.IsNullOrEmpty(filtertype) && !string.IsNullOrEmpty(filtervalue))
-                    {
-                        var fieldfilter = Builders<LeadsModel>.Filter.Eq(filtertype, Enum.Parse<LeadStatus>(filtervalue,true));
-
-                        leadfilter = Builders<LeadsModel>.Filter.And(leadfilter, fieldfilter);
-                    }
-
-                    var leadslist = await _dbContext.Leads.Find(leadfilter).ToListAsync();
-
-                    var userIds = leadslist.Select(l => l.CreatedById).Distinct().ToList();
-
-                    var filter = Builders<UsersModel>.Filter.In(u => u.Id, userIds);
-                    var users = await _dbContext.Users.Find(filter)
-                        .Project(u => new UserMaskedResponse
-                        {
-                            Id = u.Id,
-                            Name = u.Name
-                        }).ToListAsync();
-
-                    var userDict = users.ToDictionary(u => u.Id, u => u);
-
-                    foreach (var lead in leadslist)
-                    {
-                        if (userDict.TryGetValue(lead.CreatedById, out var maskedUser))
-                        {
-                            lead.CreatedBy = maskedUser;
-                        }
-                    }
-
-
-
-                    return (leadslist);
-                }
-                else
-                {
-                    if (!Enum.TryParse<LeadType>(type, true, out var typeEnum))
-                        throw new ArgumentException("Invalid type value");
-                    var leadfilter = Builders<LeadsModel>.Filter.And(
-                                        Builders<LeadsModel>.Filter.Eq(x => x.Type, typeEnum),
-                                        Builders<LeadsModel>.Filter.Eq(x => x.CreatedById, userId)
-                                    );
-
-                    if (!string.IsNullOrEmpty(search))
-                    {
-                        var searchFilter = Builders<LeadsModel>.Filter.Or(
-                            Builders<LeadsModel>.Filter.Regex("name", new BsonRegularExpression(search, "i")),
-                            Builders<LeadsModel>.Filter.Regex("email", new BsonRegularExpression(search, "i"))
-                        );
-
-                        leadfilter = Builders<LeadsModel>.Filter.And(leadfilter, searchFilter);
-                    }
-                    if (!string.IsNullOrEmpty(filtertype) && !string.IsNullOrEmpty(filtervalue))
-                    {
-                        var fieldfilter = Builders<LeadsModel>.Filter.Eq(filtertype, Enum.Parse<LeadStatus>(filtervalue,true));
-
-                        leadfilter = Builders<LeadsModel>.Filter.And(leadfilter, fieldfilter);
-                    }
-                    var leadslist = await _dbContext.Leads.Find(leadfilter).ToListAsync();
-                    var userIds = leadslist.Select(l => l.CreatedById).Distinct().ToList();
-
-                    var filter = Builders<UsersModel>.Filter.In(u => u.Id, userIds);
-                    var users = await _dbContext.Users.Find(filter)
-                        .Project(u => new UserMaskedResponse
-                        {
-                            Id = u.Id,
-                            Name = u.Name
-                        }).ToListAsync();
-
-                    var userDict = users.ToDictionary(u => u.Id, u => u);
-
-                    foreach (var lead in leadslist)
-                    {
-                        if (userDict.TryGetValue(lead.CreatedById, out var maskedUser))
-                        {
-                            lead.CreatedBy = maskedUser;
-                        }
-                    }
-
-
-
-                    return (leadslist);
+                    var showfilter = Builders<LeadsModel>.Filter.Eq(x => x.CreatedById, userId);
+                    leadfilter = Builders<LeadsModel>.Filter.And(leadfilter, showfilter);
                 }
 
+                if (!string.IsNullOrEmpty(search))
+                {
+                    var searchFilter = Builders<LeadsModel>.Filter.Or(
+                        Builders<LeadsModel>.Filter.Regex("Name", new BsonRegularExpression(search, "i")),
+                        Builders<LeadsModel>.Filter.Regex("Email", new BsonRegularExpression(search, "i"))
+                    );
 
+                    leadfilter = Builders<LeadsModel>.Filter.And(leadfilter, searchFilter);
+                }
+                if (!string.IsNullOrEmpty(filtertype) && !string.IsNullOrEmpty(filtervalue))
+                {
+                    var fieldfilter = Builders<LeadsModel>.Filter.Eq(filtertype, Enum.Parse<LeadStatus>(filtervalue, true));
+
+                    leadfilter = Builders<LeadsModel>.Filter.And(leadfilter, fieldfilter);
+                }
+                var totalCount = await _dbContext.Leads.CountDocumentsAsync(leadfilter);
+                var skip = pageNumber.HasValue && pageSize.HasValue ? (pageNumber.Value - 1) * pageSize.Value : 0;
+
+                var leadsList = await _dbContext.Leads
+                    .Find(leadfilter)
+                    .Skip(skip)
+                    .Limit(pageSize)
+                    .ToListAsync();
+                PaginatedLeadResult response = new() { LeadList = leadsList, TotalCount = totalCount };
+                return response;
             }
             catch (Exception)
             {
@@ -326,6 +204,13 @@ namespace Task_backend.Service
             }
         }
 
+        /// <summary>
+        /// Links a lead to a client
+        /// </summary>
+        /// <param name="LeadId">Lead Id</param>
+        /// <param name="ClientId">Client Id</param>
+        /// <returns>Updated Lead</returns>
+        /// <exception cref="Exception"></exception>
         public async Task<LeadsModel> LinkClientToLead(string LeadId, string ClientId)
         {
             try
@@ -340,18 +225,20 @@ namespace Task_backend.Service
                         ReturnDocument = ReturnDocument.After
                     });
 
-                if (lead == null)
-                {
-                    throw new Exception("Lead not found");
-                }
-
-                return lead;
+                return lead ?? throw new Exception("Lead not found");
             }
             catch (Exception ex)
             {
                 throw new Exception("Database Error", ex);
             }
         }
+        /// <summary>
+        /// Unlinks the client from the lead
+        /// </summary>
+        /// <param name="LeadId">Lead Id</param>
+        /// <param name="ClientId">Client Id</param>
+        /// <returns>Updated Lead</returns>
+        /// <exception cref="Exception"></exception>
 
         public async Task<LeadsModel> UnLinkClientToLead(string LeadId, string ClientId)
         {
@@ -373,7 +260,14 @@ namespace Task_backend.Service
                 throw new Exception("Database Error");
             }
         }
-
+        /// <summary>
+        /// Update the details of the Lead/Contact
+        /// </summary>
+        /// <param name="Id">Lead Id</param>
+        /// <param name="Req">Lead Update Dto</param>
+        /// <returns>Updated Lead</returns>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="Exception"></exception>
         public async Task<LeadsModel> UpdateLead(string Id, UpdateLeadRequest Req)
         {
             try

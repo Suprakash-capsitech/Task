@@ -84,7 +84,7 @@ const CreateLeadForm = ({
     try {
       const response = await axiosPrivate("/Client/clients");
       if (response.data) {
-        setClient(response.data);
+        setClient(response.data.clientList);
       }
     } catch (error) {
       // console.log(error);
@@ -98,7 +98,7 @@ const CreateLeadForm = ({
     setclientlist(
       client
         ?.filter((item) => ClientTypeCnversion[item.type] === clientType)
-        .map((item) => ({
+        ?.map((item) => ({
           value: item.id,
           label: item.name,
         }))

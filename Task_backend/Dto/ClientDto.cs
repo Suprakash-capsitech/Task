@@ -31,7 +31,7 @@ namespace Task_backend.Dto
         /// <summary>
         /// Id's of the contacts linked with client
         /// </summary>
-        public required string[] ContactIds { get; set; }
+        public required List<string> ContactIds { get; set; }
 
     }
     public enum ClientType
@@ -47,6 +47,11 @@ namespace Task_backend.Dto
         Unknown,
         Active,
         Inactive
+    }
+    public class PaginatedResult
+    {
+        public required List<ClientsModel> ClientList { get; set; }
+        public required long TotalCount { get; set; }
     }
 
 }

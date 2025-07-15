@@ -28,25 +28,18 @@ const Clients = () => {
   const [isloading, setisloading] = useState<boolean>(false);
   const [clientlist, setclientlist] = useState<ClientInterface[]>([]);
   // const [openModal, setopenModal] = useState<ClientInterface>();
-  const [currentPage, setCurrentPage] = useState(0);
+  const [currentPage, setCurrentPage] = useState<number>(0);
   const [columns, setColumns] = useState<IColumn[]>([]);
   const axiosPrivate = useAxiosPrivate();
   const navigate = useNavigate();
-
   const [itemperpage, setItemperpage] = useState<number>(5);
+  const [totalPages, settotalPages] = useState<number>(0);
   const pageoption: IDropdownOption[] = [
     { key: 5, text: "5" },
     { key: 10, text: "10" },
     { key: 15, text: "15" },
     { key: 20, text: "20" },
   ];
-  const ITEMS_PER_PAGE = itemperpage;
-  const totalPages = Math.ceil(clientlist.length / ITEMS_PER_PAGE);
-  const startIndex = currentPage * ITEMS_PER_PAGE;
-  const paginatedItems = clientlist.slice(
-    startIndex,
-    startIndex + ITEMS_PER_PAGE
-  );
 
   const BreadCrumitem = [
     { key: "home", text: "Home", href: "/" },
@@ -60,11 +53,14 @@ const Clients = () => {
           search: search,
           filtertype: filterType,
           filtervalue: filterValue,
+          pageNumber: currentPage + 1,
+          pagesize: itemperpage,
         },
       });
 
       if (response.data) {
-        setclientlist(response.data);
+        setclientlist(response.data.clientList);
+        settotalPages(Math.ceil(response.data.totalCount / itemperpage));
         setisloading(false);
       }
     } catch (error) {
@@ -79,7 +75,7 @@ const Clients = () => {
 
   useEffect(() => {
     GetClients();
-  }, [filterValue]);
+  }, [filterValue, itemperpage, currentPage]);
   useEffect(() => {
     const initialColumns: IColumn[] = [
       {
@@ -92,7 +88,7 @@ const Clients = () => {
         isSorted: false,
         isSortedDescending: false,
         onRender: (_item: ClientInterface, index?: number) =>
-          index !== undefined ? startIndex + index + 1 : "",
+          index !== undefined ? currentPage * itemperpage + index + 1 : "",
       },
       {
         key: "name",
@@ -130,13 +126,9 @@ const Clients = () => {
         minWidth: 150,
         isResizable: true,
         isSorted: false,
-        onRender: (item: ClientInterface) =>{
-          return(
-            <Text>
-              {ClientTypeCnversion[item.type as number]}
-            </Text>
-          )
-        }
+        onRender: (item: ClientInterface) => {
+          return <Text>{ClientTypeCnversion[item.type as number]}</Text>;
+        },
       },
       {
         key: "address",
@@ -187,34 +179,30 @@ const Clients = () => {
           }),
       },
       {
-      key: "status",
-              name: "Status",
-              fieldName: "status",
-              minWidth: 100,
-              isResizable: true,
-              onRender: (item: ClientInterface) => (
-                <Text
-                  style={{
-                    color:
-                      item.status === 1
-                        ? " rgb(16, 124, 16)"
-                        : "rgb(50, 49, 48)",
-                    backgroundColor:
-                      item.status === 1
-                        ? "rgb(223, 246, 221)"
-                        : "rgb(255, 244, 206)",
-                    padding: "4px 8px",
-                    borderRadius: 4,
-                    display: "inline-block",
-                  }}
-                >
-                  {StatusConversion[item.status]}
-                </Text>
-              ),
+        key: "status",
+        name: "Status",
+        fieldName: "status",
+        minWidth: 100,
+        isResizable: true,
+        onRender: (item: ClientInterface) => (
+          <Text
+            style={{
+              color:
+                item.status === 1 ? " rgb(16, 124, 16)" : "rgb(50, 49, 48)",
+              backgroundColor:
+                item.status === 1 ? "rgb(223, 246, 221)" : "rgb(255, 244, 206)",
+              padding: "4px 8px",
+              borderRadius: 4,
+              display: "inline-block",
+            }}
+          >
+            {StatusConversion[item.status]}
+          </Text>
+        ),
       },
     ];
     setColumns(initialColumns);
-  }, [startIndex, itemperpage]);
+  }, []);
 
   useEffect(() => {
     setCurrentPage(0);
@@ -256,7 +244,7 @@ const Clients = () => {
         ) : (
           <Stack tokens={{ childrenGap: 10, padding: 5 }}>
             <DetailsList
-              items={paginatedItems}
+              items={clientlist}
               columns={columns}
               setKey="set"
               layoutMode={DetailsListLayoutMode.justified}

@@ -1,5 +1,6 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using Task_backend.Dto;
 
 namespace Task_backend.Models
 {
@@ -12,8 +13,8 @@ namespace Task_backend.Models
         public required string Name { get; set; }
         [BsonElement("email"), BsonRepresentation(BsonType.String)]
         public required string Email { get; set; }
-        [BsonElement("role"), BsonRepresentation(BsonType.String)]
-        public required string Role { get; set; }
+        [BsonElement("role")]
+        public required UserRoles Role { get; set; }
         [BsonElement("password"), BsonRepresentation(BsonType.String)]
         public required string Password { get; set; }
         [BsonElement("token"), BsonRepresentation(BsonType.String)]

@@ -33,6 +33,7 @@ const Leads = () => {
   const [leads, setleads] = useState<LeadsInterface[]>([]);
   const [columns, setColumns] = useState<IColumn[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
+  const [totalPage, settotalPage] = useState<number>(0);
   const [searchParam, setSearchParam] = useState("getleads");
 
   const [itemperpage, setItemperpage] = useState<number>(5);
@@ -42,10 +43,6 @@ const Leads = () => {
     { key: 15, text: "15" },
     { key: 20, text: "20" },
   ];
-  const ITEMS_PER_PAGE = itemperpage;
-  const totalPages = Math.ceil(leads.length / ITEMS_PER_PAGE);
-  const startIndex = currentPage * ITEMS_PER_PAGE;
-  const paginatedItems = leads.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   const axiosPrivate = useAxiosPrivate();
   const navigate = useNavigate();
@@ -60,11 +57,14 @@ const Leads = () => {
           search: search,
           filtertype: filterType,
           filtervalue: filterValue,
+          pageNumber: currentPage + 1,
+          pagesize: itemperpage,
         },
       });
 
       if (response.data) {
-        setleads(response.data);
+        setleads(response.data.leadList);
+        settotalPage(Math.ceil(response.data.totalCount / itemperpage));
 
         setisloading(false);
       }
@@ -76,7 +76,7 @@ const Leads = () => {
   };
   useEffect(() => {
     GetLeads();
-  }, [searchParam, filterValue]);
+  }, [searchParam, filterValue, itemperpage, currentPage]);
   const handleTabClick = (item?: PivotItem) => {
     const key = item?.props.itemKey;
     if (key) {
@@ -100,7 +100,7 @@ const Leads = () => {
         isSorted: false,
         isSortedDescending: false,
         onRender: (_item: LeadsInterface, index?: number) =>
-          index !== undefined ? startIndex + index + 1 : "",
+          index !== undefined ? currentPage * itemperpage + index + 1 : "",
       },
       {
         key: "name",
@@ -138,13 +138,9 @@ const Leads = () => {
         minWidth: 150,
         isResizable: true,
         isSorted: false,
-        onRender: (item:LeadsInterface)=>{
-          return (
-            <Text>
-              {LeadTypeCnversion[item.type]}
-            </Text>
-          )
-        }
+        onRender: (item: LeadsInterface) => {
+          return <Text>{LeadTypeCnversion[item.type]}</Text>;
+        },
       },
       {
         key: "phone",
@@ -198,7 +194,7 @@ const Leads = () => {
       },
     ];
     setColumns(initialColumns);
-  }, [startIndex, itemperpage]);
+  }, []);
 
   useEffect(() => {
     setCurrentPage(0);
@@ -206,7 +202,7 @@ const Leads = () => {
 
   const handlePrevious = () => setCurrentPage((prev) => Math.max(prev - 1, 0));
   const handleNext = () =>
-    setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1));
+    setCurrentPage((prev) => Math.min(prev + 1, totalPage - 1));
 
   return (
     <Stack tokens={{ maxHeight: "90vh" }}>
@@ -249,7 +245,7 @@ const Leads = () => {
         ) : (
           <Stack tokens={{ childrenGap: 10 }}>
             <DetailsList
-              items={paginatedItems}
+              items={leads}
               columns={columns}
               setKey="set"
               layoutMode={DetailsListLayoutMode.justified}
@@ -341,7 +337,7 @@ const Leads = () => {
                     verticalAlign="end"
                     tokens={{ childrenGap: 8 }}
                   >
-                    {Array.from({ length: totalPages }, (_, i) => (
+                    {Array.from({ length: totalPage }, (_, i) => (
                       <Text
                         key={i}
                         onClick={() => setCurrentPage(i)}
@@ -365,7 +361,7 @@ const Leads = () => {
                     title="Next"
                     ariaLabel="Next"
                     onClick={handleNext}
-                    disabled={currentPage >= totalPages - 1}
+                    disabled={currentPage >= totalPage - 1}
                   />
                 </Stack>
               </Stack>

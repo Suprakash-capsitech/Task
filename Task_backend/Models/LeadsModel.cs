@@ -21,7 +21,7 @@ namespace Task_backend.Models
         public List<string>? ClientIds { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        [BsonIgnore]
+        
         public UserMaskedResponse? CreatedBy { get; set; }
     }
     public enum TypeEnum

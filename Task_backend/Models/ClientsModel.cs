@@ -21,13 +21,14 @@ namespace Task_backend.Models
         public required string CreatedById { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         [ BsonRepresentation(BsonType.ObjectId)]
-        public string[]? ContactIds { get; set; }
+        public required List<string> ContactIds { get; set; }
 
-        [BsonIgnore]
+        [BsonElement("CreatedBy")]
         public UserMaskedResponse? CreatedBy { get; set; }
 
-        [BsonIgnore]
-        public LeadsModel[]? ContactDetails { get; set; }
+
+        [BsonElement("ContactDetails")]
+        public List<LeadsModel>? ContactDetails { get; set; }
 
     }
     public enum ClientTypeEnum

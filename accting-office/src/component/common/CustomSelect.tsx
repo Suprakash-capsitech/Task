@@ -12,6 +12,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
 }) => {
   return (
     <Dropdown
+    
       label={label ? label.charAt(0).toUpperCase() + label.slice(1) : ""}
       selectedKey={selectedKey}
       onChange={onChange}

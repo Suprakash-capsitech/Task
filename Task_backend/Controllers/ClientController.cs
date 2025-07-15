@@ -59,18 +59,15 @@ namespace Task_backend.Controllers
                         PerformedBy = new UserMaskedResponse { Id = userId, Name = user.Name }
                     };
                     await _historyService.CreatedHistory(historyRequest);
-                    if (newClient.ContactIds?.Any() != true)
+                    if (newClient.ContactDetails != null && newClient.ContactDetails.Count != 0)
                     {
-                        Ok(newClient);
-                    }
-                    var leadlinks = newClient.ContactIds.Select(leadId =>
-                                    _leadService.LinkClientToLead(leadId, newClient.Id)
-                                );
+                        var leadlinks = newClient.ContactIds.Select(leadId =>
+                                   _leadService.LinkClientToLead(leadId, newClient.Id)
+                               );
 
-                    await Task.WhenAll(leadlinks);
+                        await Task.WhenAll(leadlinks);
 
-                    if (newClient.ContactDetails?.Any() == true)
-                    {
+
                         var historyEntries = newClient.ContactDetails
                             .SelectMany(contact => new[]
                             {
@@ -92,7 +89,10 @@ namespace Task_backend.Controllers
 
                         var historyTasks = historyEntries.Select(_historyService.CreatedHistory);
                         await Task.WhenAll(historyTasks);
+
                     }
+
+
 
                     return Ok(newClient);
 
@@ -121,7 +121,7 @@ namespace Task_backend.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GetAllClients([FromQuery] string? search, [FromQuery] string? filtertype, [FromQuery] string? filtervalue)
+        public async Task<IActionResult> GetAllClients([FromQuery] string? search, [FromQuery] string? filtertype, [FromQuery] string? filtervalue, [FromQuery] int pageNumber=1, [FromQuery] int pageSize=1000)
         {
             try
             {
@@ -133,7 +133,7 @@ namespace Task_backend.Controllers
                 }
 
 
-                var newClient = await _clientService.GetAllClients(userId, role, search, filtertype, filtervalue);
+                var newClient = await _clientService.GetAllClients(userId, role, search, filtertype, filtervalue, pageNumber, pageSize);
                 return Ok(newClient);
 
             }
@@ -245,7 +245,7 @@ namespace Task_backend.Controllers
 
                     string description = string.Empty;
                     var newClient = await _clientService.UpdateClient(Id, Req);
-                    
+
                     if (oldClient.Name != newClient.Name)
                         description += $"Name Updated from {oldClient.Name} to {newClient.Name}/";
                     if (oldClient.Email != newClient.Email)
@@ -392,10 +392,10 @@ namespace Task_backend.Controllers
 
                 return Ok(client);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
 
-                return StatusCode(500);
+                return StatusCode(500,ex.Message);
             }
         }
     }

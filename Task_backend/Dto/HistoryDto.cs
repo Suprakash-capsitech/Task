@@ -4,10 +4,10 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Task_backend.Dto
 {
-   
+
     public class CreateHistory
     {
-        
+
         public required TargetModel HistoryOf { get; set; }
         /// <summary>
         /// Desctiption of the tasks performed on it
@@ -18,6 +18,9 @@ namespace Task_backend.Dto
         /// </summary>
         public required NoteType TaskPerformed { get; set; }
 
+        /// <summary>
+        /// Name and Id of the User
+        /// </summary>
         public required UserMaskedResponse PerformedBy { get; set; }
     }
 
@@ -38,16 +41,25 @@ namespace Task_backend.Dto
 
     public enum NoteType
     {
-        [Display(Name = "", ShortName = "")]
+        [Display(Name = "Unknown", ShortName = "")]
         Unknown,
+
         [Display(Name = "Created", ShortName = "")]
         Created,
-        [Display(Name = "Edit", ShortName = "")]
+
+        [Display(Name = "Updated", ShortName = "")]
         Updated,
-        Delete,
+
+        [Display(Name = "Deleted", ShortName = "")]
+        Deleted,
+
+        [Display(Name = "Linked", ShortName = "")]
         Linked,
+
+        [Display(Name = "Unlinked", ShortName = "")]
         Unlinked
     }
+
 
 
 

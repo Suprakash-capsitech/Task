@@ -6,7 +6,7 @@ namespace Task_backend.Interface
     public interface ILeadService
     {
         Task<LeadsModel> CreateLead(CreateLeadRequest Req, string userId);
-        Task<IEnumerable<LeadsModel>> GetLeads(string type, string role,string userId,  string? search, string? filtertype, string? filtervalue);
+        Task<PaginatedLeadResult> GetLeads(string type, string role,string userId,  string? search, string? filtertype, string? filtervalue, int? pageNumber, int? pageSize);
         Task<IEnumerable<LeadsModel>> GetAll( string role,string userId);
         Task<LeadsModel> LinkClientToLead(string LeadId, string ClientId);
         Task<LeadsModel> UnLinkClientToLead(string LeadId, string ClientId);

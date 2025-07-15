@@ -69,7 +69,7 @@ const CreateClientForm = ({
   const [choiceGroupSlected, setchoiceGroupSlected] =
     useState<string>("getleads");
   const picker = createRef<IBasePicker<ITag>>();
-  const testTags: ITag[] = contacts.map((item) => ({
+  const testTags: ITag[] = contacts?.map((item) => ({
     key: item.id,
     name: item.name,
   }));
@@ -101,7 +101,7 @@ const CreateClientForm = ({
       try {
         const response = await axiosPrivate.get(`/Lead/${choiceGroupSlected}`);
         if (response.data) {
-          setContacts(response.data);
+          setContacts(response.data.leadList);
         }
       } catch (error) {
         // console.log(error);

@@ -68,7 +68,7 @@ const LinkContactForm = ({
       try {
         const response = await axiosPrivate.get(`/Lead/${choiceGroupSlected}`);
         if (response.data) {
-          setContacts(response.data);
+          setContacts(response.data.leadList);
         }
       } catch (error) {
         // console.log(error);
@@ -94,7 +94,9 @@ const LinkContactForm = ({
           resetForm();
         }
       } catch (error) {
-        // console.log(error);
+        OpenForm(false);
+          RefreshList();
+          resetForm();
       }
     },
   });

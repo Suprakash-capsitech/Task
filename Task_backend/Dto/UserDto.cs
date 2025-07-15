@@ -38,9 +38,15 @@ namespace Task_backend.Dto
     }
    public class UserMaskedResponse
     {
-
+        [BsonElement("id"),BsonRepresentation(BsonType.ObjectId)]
         public required string Id { get; set; }
         public required string Name { get; set; }
+    }
+    public enum UserRoles
+    {
+        Unknown,
+        Admin,
+        User
     }
 
 }

@@ -6,7 +6,7 @@ namespace Task_backend.Interface
     public interface IClientService
     {
         Task<ClientsModel> CreateClient(CreateClientRequestDto Req, string userId);
-        Task<IEnumerable<ClientsModel>> GetAllClients(string userId, string role, string? search, string? filtertype, string? filtervalue);
+        Task<PaginatedResult> GetAllClients(string userId, string role, string? search, string? filtertype, string? filtervalue, int pageNumber, int pageSize);
         Task<ClientsModel> GetClientById( string Id);
         Task<ClientsModel> DeleteClient( string Id);
         Task<ClientsModel> UnLinkLead(string Id, string lead_id);
