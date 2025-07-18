@@ -1,4 +1,3 @@
-
 import {
   initializeIcons,
   Nav,
@@ -92,28 +91,33 @@ const SideBar: React.FC = () => {
 
   const navStyles: Partial<INavStyles> = {
     root: {
-      width: collapsed ? 60 : 240,
+      width: collapsed ? 40 : 200,
       minHeight: "100%",
       overflowY: "auto",
       overflowX: "hidden",
       transition: "width 0.2s ease",
       paddingLeft: 5,
+      color: "black",
+    },
+    link: {
+      lineHeight: 10,
+      margin: 0,
+      padding: 0,
     },
     linkText: {
-      display: collapsed ? "none" : "inline",
       paddingLeft: 5,
-      fontSize:12,
-      color: "black"
+      margin: 0,
+      display: collapsed ? "none" : "inline",
+      fontSize: 11,
+      color: "black",
     },
     groupContent: {
       marginBottom: 0,
     },
-    // compositeLink:{
-    //   alignItems:"end",
-    //   alignContent:"end",
-    //   justifyContent:"end",
-    //   justifyItems:"end"
-    // }
+    compositeLink:{
+      
+      lineHeight:10,
+    }
   };
 
   return (
@@ -135,9 +139,18 @@ const SideBar: React.FC = () => {
 
       <Stack style={{ overflowY: "auto", scrollbarWidth: "none" }}>
         {navLinkGroups.map((group, index) => (
-          <Stack key={index} style={{ margin: 0  }}>
+          <Stack key={index} style={{ margin: 0 }}>
             {!collapsed && group.label && (
-              <Label styles={{ root: { fontSize:16 ,fontWeight: 700, padding:0, paddingLeft: 15 } }}>
+              <Label
+                styles={{
+                  root: {
+                    fontSize: 16,
+                    fontWeight: 700,
+                    padding: 0,
+                    paddingLeft: 15,
+                  },
+                }}
+              >
                 {group.label}
               </Label>
             )}
@@ -147,9 +160,13 @@ const SideBar: React.FC = () => {
               styles={navStyles}
               selectedKey={path ? path : "dashboard"}
             />
-            <Separator styles={{root:{
-              height:3
-            }}}></Separator>
+            <Separator
+              styles={{
+                root: {
+                  height: 3,
+                },
+              }}
+            ></Separator>
           </Stack>
         ))}
       </Stack>

@@ -39,6 +39,9 @@ namespace Task_backend.Dto
         public required string Name { get; set; }
     }
 
+    /// <summary>
+    /// Task Performed Type Values
+    /// </summary>
     public enum NoteType
     {
         [Display(Name = "Unknown", ShortName = "")]
@@ -59,8 +62,4 @@ namespace Task_backend.Dto
         [Display(Name = "Unlinked", ShortName = "")]
         Unlinked
     }
-
-
-
-
 }

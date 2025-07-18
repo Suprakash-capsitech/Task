@@ -80,7 +80,7 @@ namespace Task_backend.Controllers
                     }
                 }
 
-                
+
 
                 return CreatedAtAction(nameof(CreateLead), new { id = newLead.Id }, newLead);
             }
@@ -172,7 +172,7 @@ namespace Task_backend.Controllers
                 if (!String.IsNullOrEmpty(role) && !String.IsNullOrEmpty(userId))
                 {
 
-                    var contactList = await _leadService.GetLeads(type, role, userId, search, filtertype, filtervalue ,pageNumber, pageSize );
+                    var contactList = await _leadService.GetLeads(type, role, userId, search, filtertype, filtervalue, pageNumber, pageSize);
                     return Ok(contactList);
                 }
                 else
@@ -263,20 +263,26 @@ namespace Task_backend.Controllers
                 try
                 {
                     var leadOld = await _leadService.GetLeadById(Id);
-                    var lead = await _leadService.UpdateLead(Id, Req);
+                    bool isTypeChanged = false;
                     string description = string.Empty;
-                    //var type = Enum.Parse<LeadType>(Req.Type, true);
-                    //var status = Enum.Parse<LeadStatus>(Req.Status, true);
-                    if (leadOld.Name != lead.Name)
-                        description += $"Name Updated from {leadOld.Name} to {lead.Name}/";
-                    if (leadOld.Email != lead.Email)
-                        description += $"Email Updated from {leadOld.Email} to {lead.Email}/";
-                    if (leadOld.PhoneNumber != lead.PhoneNumber)
-                        description += $"Phone Number Updated from {leadOld.PhoneNumber} to {lead.PhoneNumber}/";
-                    if (leadOld.Type != lead.Type)
-                        description += $"Type Updated from {leadOld.Type} to {lead.Type}/";
-                    if (leadOld.Status != lead.Status)
-                        description += $"Status Updated from {leadOld.Status} to {lead.Status}/";
+                    var type = Enum.Parse<LeadType>(Req.Type, true);
+                    var status = Enum.Parse<LeadStatus>(Req.Status, true);
+                    if (leadOld.Name != Req.Name)
+                        description += $"Name Updated from {leadOld.Name} to {Req.Name}/";
+                    if (leadOld.Email != Req.Email)
+                        description += $"Email Updated from {leadOld.Email} to {Req.Email}/";
+                    if (leadOld.PhoneNumber != Req.PhoneNumber)
+                        description += $"Phone Number Updated from {leadOld.PhoneNumber} to {Req.PhoneNumber}/";
+                    if (leadOld.Type != type)
+                    {
+                        description += $"Type Updated from {leadOld.Type} to {type}/";
+                        isTypeChanged = true;
+                    }
+
+                    if (leadOld.Status !=status)
+                        description += $"Status Updated from {leadOld.Status} to {status}/";
+
+                    var lead = await _leadService.UpdateLead(Id, Req ,isTypeChanged);
                     var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                     if (!string.IsNullOrEmpty(userId))
 

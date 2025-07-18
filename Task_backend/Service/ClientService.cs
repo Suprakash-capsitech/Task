@@ -2,6 +2,7 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 using Task_backend.Data;
 using Task_backend.Dto;
 using Task_backend.Interface;
@@ -180,6 +181,30 @@ namespace Task_backend.Service
                 throw new Exception("Database Error");
             }
         }
+
+        public async Task<List<ClientStatDto>> GetStats(int month, int year)
+        {
+            try
+            {
+                List< ClientStatDto > result = await _dbContext.Clients.AsQueryable()
+                                        .Where(doc => doc.CreatedAt.Month == month && doc.CreatedAt.Year == year)
+                                        .GroupBy(doc => doc.CreatedAt.Day)
+                                        .Select(g => new ClientStatDto
+                                        {
+                                            Day = g.Key,
+                                            ClientCount = g.Count()
+                                        })
+                                        .OrderBy(x => x.Day)
+                                        .ToListAsync();
+                return result;
+            }
+            catch (Exception)
+            {
+
+                throw new Exception("Database Error");
+            }
+        }
+
         /// <summary>
         /// Links a lead/Contact with CLient
         /// </summary>
@@ -192,11 +217,7 @@ namespace Task_backend.Service
             try
             {
                 // Fetch the client
-                var client = await _dbContext.Clients.Find(x => x.Id == Id).FirstOrDefaultAsync();
-                if (client == null)
-                {
-                    throw new Exception("Client not found.");
-                }
+                var client = await _dbContext.Clients.Find(x => x.Id == Id).FirstOrDefaultAsync() ?? throw new Exception("Client not found.");
                 if (client.ContactIds?.Contains(lead_id) == true)
                     throw new Exception("This lead is already linked to the client.");
 

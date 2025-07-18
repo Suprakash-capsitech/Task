@@ -32,7 +32,7 @@ const Clients = () => {
   const [columns, setColumns] = useState<IColumn[]>([]);
   const axiosPrivate = useAxiosPrivate();
   const navigate = useNavigate();
-  const [itemperpage, setItemperpage] = useState<number>(5);
+  const [itemperpage, setItemperpage] = useState<number>(10);
   const [totalPages, settotalPages] = useState<number>(0);
   const pageoption: IDropdownOption[] = [
     { key: 5, text: "5" },
@@ -202,7 +202,7 @@ const Clients = () => {
       },
     ];
     setColumns(initialColumns);
-  }, []);
+  }, [currentPage]);
 
   useEffect(() => {
     setCurrentPage(0);
@@ -274,18 +274,24 @@ const Clients = () => {
                 const isEven = props.itemIndex % 2 === 0;
 
                 return defaultRender({
-                  ...props,
-                  styles: {
-                    root: {
-                      backgroundColor: isEven ? "#f9f9f9" : "white", // stripe effect
-                      selectors: {
-                        ":hover": {
-                          backgroundColor: "#eaeaea", // optional hover
+                    ...props,
+                    styles: {
+                      root: {
+                        fontWeight: "thin",
+                        padding: 0,
+                        margin: 0,
+                        fontSize: 11,
+                        lineHeight: 10,
+                        alignContent: "center",
+                        backgroundColor: isEven ? "#f9f9f9" : "white", // stripe effect
+                        selectors: {
+                          ":hover": {
+                            backgroundColor: "#eaeaea", // optional hover
+                          },
                         },
                       },
                     },
-                  },
-                });
+                  });
               }}
             />
             {clientlist.length === 0 ? (

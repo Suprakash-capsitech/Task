@@ -17,7 +17,7 @@ namespace Task_backend.Middleware
 
             var role = context.User.FindFirst(ClaimTypes.Role)?.Value;
 
-            if (string.IsNullOrEmpty(role) || role != "admin")
+            if (string.IsNullOrEmpty(role) || role != "Admin")
             {
                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
                 await context.Response.WriteAsync("Forbidden: Admins only.");

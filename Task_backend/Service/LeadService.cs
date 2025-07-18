@@ -1,5 +1,6 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 using System.Data;
 using Task_backend.Data;
 using Task_backend.Dto;
@@ -103,7 +104,7 @@ namespace Task_backend.Service
         /// <param name="Id">Client Id</param>
         /// <returns>List of Leads </returns>
         /// <exception cref="Exception"></exception>
-       
+
         public async Task<IEnumerable<LeadsModel>> GetLeadByClientId(string Id)
         {
             try
@@ -133,7 +134,7 @@ namespace Task_backend.Service
             try
             {
                 LeadsModel lead = await _dbContext.Leads.Find(x => x.Id == Id).FirstOrDefaultAsync();
-                
+
                 return lead;
 
             }
@@ -196,6 +197,32 @@ namespace Task_backend.Service
                     .ToListAsync();
                 PaginatedLeadResult response = new() { LeadList = leadsList, TotalCount = totalCount };
                 return response;
+            }
+            catch (Exception)
+            {
+
+                throw new Exception("Database Error");
+            }
+        }
+
+        public async Task<List<LeadStatDto>> GetStats(int month, int year)
+        {
+            try
+            {
+                var result = await _dbContext.Leads.AsQueryable()
+                                        .Where(doc => (doc.Type == LeadType.lead || doc.Type == LeadType.contact)
+                                                      && doc.CreatedAt.Month == month
+                                                      && doc.CreatedAt.Year == year)
+                                        .GroupBy(doc => doc.CreatedAt.Day)
+                                        .Select(g => new LeadStatDto
+                                        {
+                                            Day = g.Key,
+                                            LeadCount = g.Count(x => x.Type == LeadType.lead),
+                                            ContactCount = g.Count(x => x.Type == LeadType.contact)
+                                        })
+                                        .OrderBy(r => r.Day).ToListAsync();
+
+                return result;
             }
             catch (Exception)
             {
@@ -268,7 +295,7 @@ namespace Task_backend.Service
         /// <returns>Updated Lead</returns>
         /// <exception cref="ArgumentException"></exception>
         /// <exception cref="Exception"></exception>
-        public async Task<LeadsModel> UpdateLead(string Id, UpdateLeadRequest Req)
+        public async Task<LeadsModel> UpdateLead(string Id, UpdateLeadRequest Req, bool isTypeChanged)
         {
             try
             {
@@ -276,16 +303,25 @@ namespace Task_backend.Service
                     throw new ArgumentException("Invalid type value");
                 if (!Enum.TryParse<LeadStatus>(Req.Status, true, out var statusEnum))
                     throw new ArgumentException("Invalid type value");
-                var updateDefinations = Builders<LeadsModel>.Update
-                    .Set(x => x.Name, Req.Name)
-                    .Set(x => x.Email, Req.Email)
-                    .Set(x => x.Type, typeEnum)
-                    .Set(x => x.Status, statusEnum)
-                    .Set(x => x.PhoneNumber, Req.PhoneNumber);
+                var updateDefinitions = Builders<LeadsModel>.Update
+                                            .Set(x => x.Name, Req.Name)
+                                            .Set(x => x.Email, Req.Email)
+                                            .Set(x => x.Type, typeEnum)
+                                            .Set(x => x.Status, statusEnum)
+                                            .Set(x => x.PhoneNumber, Req.PhoneNumber);
+
+                if (isTypeChanged)
+                {
+                    updateDefinitions = updateDefinitions.Set(x => x.CreatedAt, Req.CreatedAt);
+                }
+
                 var options = new FindOneAndUpdateOptions<LeadsModel> { ReturnDocument = ReturnDocument.After };
 
-                LeadsModel deletedLead = await _dbContext.Leads.FindOneAndUpdateAsync(x => x.Id == Id, updateDefinations, options);
-                return deletedLead;
+                var updatedLead = await _dbContext.Leads.FindOneAndUpdateAsync(
+                    x => x.Id == Id,
+                    updateDefinitions,
+                    options);
+                return updatedLead;
             }
             catch (Exception)
             {

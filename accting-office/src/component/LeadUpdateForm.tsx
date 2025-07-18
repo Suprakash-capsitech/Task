@@ -159,25 +159,27 @@ const LeadUpdateForm = ({
                   {touched.phoneNumber && errors.phoneNumber}
                 </Text>
               </Stack>
-              <Stack style={{ width: "50%" }}>
-                <CustomSelect
-                  label="Type"
-                  selectedKey={values.type}
-                  onChange={(_, option) =>
-                    formik.setFieldValue("type", option?.key)
-                  }
-                  onBlur={handleBlur}
-                  options={[
-                    { key: "", text: "Please select a role", disabled: true },
-                    { key: "lead", text: "Lead" },
-                    { key: "contact", text: "Contact" },
-                  ]}
-                  styles={{
-                    root: { border: "none" },
-                  }}
-                />
-                <Text className="error">{touched.type && errors.type}</Text>
-              </Stack>
+              {LeadTypeCnversion[value.type] == "lead" && (
+                <Stack style={{ width: "50%" }}>
+                  <CustomSelect
+                    label="Type"
+                    selectedKey={values.type}
+                    onChange={(_, option) =>
+                      formik.setFieldValue("type", option?.key)
+                    }
+                    onBlur={handleBlur}
+                    options={[
+                      { key: "", text: "Please select a role", disabled: true },
+                      { key: "lead", text: "Lead" },
+                      { key: "contact", text: "Contact" },
+                    ]}
+                    styles={{
+                      root: { border: "none" },
+                    }}
+                  />
+                  <Text className="error">{touched.type && errors.type}</Text>
+                </Stack>
+              )}
             </Stack>
           </Stack>
           <Stack>

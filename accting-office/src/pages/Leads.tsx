@@ -36,7 +36,7 @@ const Leads = () => {
   const [totalPage, settotalPage] = useState<number>(0);
   const [searchParam, setSearchParam] = useState("getleads");
 
-  const [itemperpage, setItemperpage] = useState<number>(5);
+  const [itemperpage, setItemperpage] = useState<number>(10);
   const pageoption: IDropdownOption[] = [
     { key: 5, text: "5" },
     { key: 10, text: "10" },
@@ -194,7 +194,7 @@ const Leads = () => {
       },
     ];
     setColumns(initialColumns);
-  }, []);
+  }, [currentPage]);
 
   useEffect(() => {
     setCurrentPage(0);
@@ -267,18 +267,24 @@ const Leads = () => {
                 const isEven = props.itemIndex % 2 === 0;
 
                 return defaultRender({
-                  ...props,
-                  styles: {
-                    root: {
-                      backgroundColor: isEven ? "#f9f9f9" : "white", // stripe effect
-                      selectors: {
-                        ":hover": {
-                          backgroundColor: "#eaeaea", // optional hover
+                    ...props,
+                    styles: {
+                      root: {
+                        fontWeight: "thin",
+                        padding: 0,
+                        margin: 0,
+                        fontSize: 11,
+                        lineHeight: 10,
+                        alignContent: "center",
+                        backgroundColor: isEven ? "#f9f9f9" : "white", // stripe effect
+                        selectors: {
+                          ":hover": {
+                            backgroundColor: "#eaeaea", // optional hover
+                          },
                         },
                       },
                     },
-                  },
-                });
+                  });
               }}
             />
             {leads.length === 0 ? (

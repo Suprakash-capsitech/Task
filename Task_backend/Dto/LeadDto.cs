@@ -56,24 +56,41 @@ namespace Task_backend.Dto
         /// Status of lead active or inactive
         /// </summary>
         public required string Status { get; set; }
+        public  DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
 
     }
+
+    /// <summary>
+    /// Lead status types active / inactive
+    /// </summary>
     public enum LeadStatus
     {
         Unknown,
         Active,
         Inactive
     }
+    /// <summary>
+    /// Lead catagorie Lead/Contact
+    /// </summary>
     public enum LeadType
     {
        Unknown,
        lead,
        contact
     }
+    /// <summary>
+    /// DTO for Paginated Response of Getlead routes
+    /// </summary>
     public class PaginatedLeadResult
     {
         public required List<LeadsModel> LeadList { get; set; }
         public required long TotalCount { get; set; }
+    }
+    public class LeadStatDto
+    {
+        public int Day { get; set; }
+        public int LeadCount { get; set; }
+        public int ContactCount { get; set; }
     }
 }

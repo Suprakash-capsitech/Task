@@ -9,6 +9,7 @@ export interface LeadsInterface {
   createdAt: string;
   createdBy: UserInterface;
 }
+
 export interface ClientInterface {
   id: string;
   name: string;
@@ -45,6 +46,20 @@ export interface HistoryInterface {
   taskPerfoemed: HistoryType;
   performedBy: UserInterface;
   createdAt: string;
+}
+
+export interface UserDataStats {
+  id: string;
+  name: string;
+  leadCount: number;
+  contactCount: number;
+  clientCount: number;
+}
+export interface StatsCharts {
+  id: number;
+  leadCount: number;
+  contactCount: number;
+  clientCount: number;
 }
 export enum Status {
   Unknown,

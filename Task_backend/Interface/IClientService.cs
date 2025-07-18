@@ -12,5 +12,6 @@ namespace Task_backend.Interface
         Task<ClientsModel> UnLinkLead(string Id, string lead_id);
         Task<ClientsModel> LinkLead(string Id, string lead_id);
         Task<ClientsModel> UpdateClient( string Id , CreateClientRequestDto Req);
+        Task<List<ClientStatDto>> GetStats(int month,int year);
     }
 }

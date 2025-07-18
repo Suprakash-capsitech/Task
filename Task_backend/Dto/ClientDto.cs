@@ -34,6 +34,9 @@ namespace Task_backend.Dto
         public required List<string> ContactIds { get; set; }
 
     }
+    /// <summary>
+    /// Types for the Client
+    /// </summary>
     public enum ClientType
     {
         Unknown,
@@ -42,16 +45,27 @@ namespace Task_backend.Dto
         LLP,
         Partnersihp
     }
+    /// <summary>
+    /// Status for the Client active or inactive
+    /// </summary>
     public enum ClientStatus
     {
         Unknown,
         Active,
         Inactive
     }
+
+    /// <summary>
+    /// DTO for the Response of paginated get route
+    /// </summary>
     public class PaginatedResult
     {
         public required List<ClientsModel> ClientList { get; set; }
         public required long TotalCount { get; set; }
     }
-
+    public class ClientStatDto
+    {
+        public int Day { get; set; }
+        public int ClientCount { get; set; }
+    }
 }

@@ -39,10 +39,7 @@ const CustomCommandBar = ({
   const path = location.pathname.split("/")[1];
   const Cretriaitems: IDropdownOption[] = [
     { key: "Status", text: "Status" },
-    {
-      key: "Type",
-      text: "Type",
-    },
+    { key: "Type", text: "Type" },
   ];
   const LeadCretriaitems: IDropdownOption[] = [
     { key: "Status", text: "Status" },
@@ -115,96 +112,130 @@ const CustomCommandBar = ({
       text: "filter",
       onRender: () =>
         showFilter && setFilterType && setFilterValue ? (
-          <Stack>
-            <div ref={filterRef}>
-              <DefaultButton
-                iconProps={{ iconName: "PageListFilter" }}
-                onClick={() => setIsCalloutVisible((prev) => !prev)}
-                styles={{
-                  icon: {
-                    color: " rgb(0, 120, 212)",
-                  },
-                  label: { fontSize: "11px", fontWeight: "thin" },
-                  root: {
-                    height: "24px",
+          <Stack horizontal tokens={{childrenGap:2}}>
+            {filteroption && value && (
+              <Stack>
+                <DefaultButton
+                  onClick={() => {
+                    setFilterType("");
+                    setFilterValue("");
+                    setfilteroption("");
+                    setvalue("");
+                  }}
+                  iconProps={{ iconName: "Cancel" }}
+                  styles={{
+                    icon: {
+                      color: " rgb(0, 120, 212)",
+                    },
+                    label: { fontSize: "11px", fontWeight: "thin" },
+                    root: {
+                      height: "24px",
 
-                    border: "none",
-                  },
-                }}
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  backgroundColor: "rgb(199, 224, 244)",
-                  borderRadius: 20,
-                }}
-              >
-                Add Filter
-              </DefaultButton>
-            </div>
+                      border: "none",
+                    },
+                  }}
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    backgroundColor: "rgb(199, 224, 244)",
+                    borderRadius: 20,
+                  }}
+                >
+                  {filteroption} = {value}
+                </DefaultButton>
+              </Stack>
+            )}
+            <Stack>
+              <div ref={filterRef}>
+                <DefaultButton
+                  iconProps={{ iconName: "PageListFilter" }}
+                  onClick={() => setIsCalloutVisible((prev) => !prev)}
+                  styles={{
+                    icon: {
+                      color: " rgb(0, 120, 212)",
+                    },
+                    label: { fontSize: "11px", fontWeight: "thin" },
+                    root: {
+                      height: "24px",
 
-            {isCalloutVisible && (
-              <Callout
-                role="Status"
-                target={filterRef.current}
-                onDismiss={() => setIsCalloutVisible(false)}
-                gapSpace={0}
-                directionalHint={DirectionalHint.bottomRightEdge}
-                style={{
-                  width: 320,
-                  maxWidth: "100%",
-                  padding: "10px 14px",
-                }}
-              >
-                <Stack>
-                  <CustomSelect
-                    label="Cretria"
-                    selectedKey={filteroption}
-                    options={path == "lead" ? LeadCretriaitems : Cretriaitems}
-                    onChange={(_e, option) => {
-                      setFilterType(option?.key as string);
-                      setvalue("");
-                      setfilteroption(option?.key as string);
-                    }}
-                  />
-                  {filteroption && (
+                      border: "none",
+                    },
+                  }}
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    backgroundColor: "rgb(199, 224, 244)",
+                    borderRadius: 20,
+                  }}
+                >
+                  Add Filter
+                </DefaultButton>
+              </div>
+
+              {isCalloutVisible && (
+                <Callout
+                  role="Status"
+                  target={filterRef.current}
+                  onDismiss={() => setIsCalloutVisible(false)}
+                  gapSpace={0}
+                  directionalHint={DirectionalHint.bottomRightEdge}
+                  style={{
+                    width: 320,
+                    maxWidth: "100%",
+                    padding: "10px 14px",
+                  }}
+                >
+                  <Stack>
                     <CustomSelect
-                      label="Value"
-                      selectedKey={value}
-                      options={valueitems[filteroption]}
+                      label="Cretria"
+                      selectedKey={filteroption}
+                      options={path == "lead" ? LeadCretriaitems : Cretriaitems}
                       onChange={(_e, option) => {
-                        setFilterValue(option?.key as string);
-                        setvalue(option?.key as string);
+                        setFilterType(option?.key as string);
+                        setvalue("");
+                        setfilteroption(option?.key as string);
                       }}
                     />
-                  )}
-                  <Stack
-                    tokens={{ childrenGap: 6, padding: 5 }}
-                    horizontal
-                    horizontalAlign="end"
-                  >
-                    <DefaultButton
-                      type="reset"
-                      onClick={() => {
-                        setFilterType("");
-                        setFilterValue("");
-                        setfilteroption("");
-                        setvalue("");
-                        setIsCalloutVisible(false);
-                      }}
-                      styles={{
-                        root: {
-                          fontSize: 12,
-                          borderRadius: 5,
-                        },
-                        label: {
-                          fontWeight: "thin",
-                        },
-                      }}
+                    {filteroption && (
+                      <CustomSelect
+                        label="Value"
+                        selectedKey={value}
+                        options={valueitems[filteroption]}
+                        onChange={(_e, option) => {
+                          setFilterValue(option?.key as string);
+                          setvalue(option?.key as string);
+                        }}
+                      />
+                    )}
+                    <Stack
+                      tokens={{ childrenGap: 6, padding: 5 }}
+                      horizontal
+                      horizontalAlign="end"
                     >
-                      Clear Filter
-                    </DefaultButton>
-                    {/* <PrimaryButton
+                      <DefaultButton
+                        type="reset"
+                        onClick={() => {
+                          setFilterType("");
+                          setFilterValue("");
+                          setfilteroption("");
+                          setvalue("");
+                          setIsCalloutVisible(false);
+                        }}
+                        styles={{
+                          root: {
+                            fontSize: 12,
+                            borderRadius: 5,
+                          },
+                          label: {
+                            fontWeight: "thin",
+                          },
+                        }}
+                      >
+                        Clear Filter
+                      </DefaultButton>
+                      {/* <PrimaryButton
                       type="submit"
                       onClick={() => RefreshList()}
                       styles={{
@@ -219,10 +250,11 @@ const CustomCommandBar = ({
                     >
                       Apply{" "}
                     </PrimaryButton> */}
+                    </Stack>
                   </Stack>
-                </Stack>
-              </Callout>
-            )}
+                </Callout>
+              )}
+            </Stack>
           </Stack>
         ) : (
           <Stack></Stack>
@@ -235,8 +267,16 @@ const CustomCommandBar = ({
       items={_items}
       farItems={_faritems}
       styles={{
+        root: {
+          padding: 0,
+          paddingLeft: 5,
+          paddingRight: 5,
+          margin: 0,
+        },
+        primarySet: {},
         secondarySet: {
           alignItems: "center",
+          gridGap: "5px",
         },
       }}
       ariaLabel="Inbox actions"

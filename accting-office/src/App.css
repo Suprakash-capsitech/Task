@@ -1,4 +1,4 @@
-.inputbox{
+/* .inputbox{
     
     -webkit-font-smoothing: antialiased;
     font-size: 13px;
@@ -15,20 +15,34 @@
     min-width: 0px;
     text-overflow: ellipsis;
     outline: 0px;
-}
+} */
 .profile-img{
-    height: 2rem;
+    height: 1.6rem;
+    border-radius: 50%;
 }
 *{
     scroll-behavior: smooth;
     scrollbar-color: rgba(0,0,0,.1) transparent;
 }
 
-
+svg{
+    border:none;
+    outline: none;
+}
 .error{
     color: rgba(255, 0, 0, 0.63);
     padding-left: 0.6rem;
 }
 .row{
     padding: 0 !important;
+}
+
+.ms-DetailsHeader{
+    padding-top: 0 !important;
+}
+.ms-DetailsHeader-cellName {
+    color: rgb(50, 102, 186);
+    padding: 0;
+    font-size: 12px !important;
+    font-weight: 600;
 }

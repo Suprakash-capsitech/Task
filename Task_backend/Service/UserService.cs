@@ -1,4 +1,6 @@
 ﻿
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 using Task_backend.Data;
 using Task_backend.Dto;
@@ -28,7 +30,7 @@ namespace Task_backend.Service
             }
             else
             {
-                
+
                 string token = _jwtService.GenerateToken(exist.Id, exist.Role.ToString());
                 string Refreshtoken = _jwtService.GenerateRefreshToken(exist.Id);
                 //update the token in the database
@@ -62,7 +64,7 @@ namespace Task_backend.Service
                 throw new Exception("User Already exist");
             }
             string HashedPassword = _passwordService.HashedPassword(Request.Password);
-            UsersModel newuser = new() { Email = Request.Email, Name = Request.Name, Password = HashedPassword ,Role= typeEnum };
+            UsersModel newuser = new() { Email = Request.Email, Name = Request.Name, Password = HashedPassword, Role = typeEnum };
             await _dbContext.Users.InsertOneAsync(newuser);
 
             string token = _jwtService.GenerateToken(newuser.Id, newuser.Role.ToString());
@@ -74,12 +76,12 @@ namespace Task_backend.Service
                 ReturnDocument = ReturnDocument.After
             };
             var updateDef = Builders<UsersModel>.Update.Set(x => x.Token, Refreshtoken);
-            
+
             newuser = await _dbContext.Users.FindOneAndUpdateAsync(x => x.Email == Request.Email, updateDef, options);
-            
-            
+
+
             // Mapping
-            
+
             UserServiceResponse response = new() { Id = newuser.Id, Email = newuser.Email, Token = token, RefreshToken = newuser.Token, Name = newuser.Name, Role = newuser.Role.ToString() };
 
             return response;
@@ -115,7 +117,7 @@ namespace Task_backend.Service
         {
             var updateDefinition = Builders<UsersModel>.Update.Set(t => t.Token, "");
             var options = new FindOneAndUpdateOptions<UsersModel> { ReturnDocument = ReturnDocument.After };
-            await _dbContext.Users.FindOneAndUpdateAsync(x=> x.Token== token,updateDefinition,options);
+            await _dbContext.Users.FindOneAndUpdateAsync(x => x.Token == token, updateDefinition, options);
             return;
         }
 
@@ -130,9 +132,146 @@ namespace Task_backend.Service
             try
             {
                 var user = await _dbContext.Users.Find(x => x.Id == UserId).FirstOrDefaultAsync();
-                
+
                 return user;
 
+            }
+            catch (Exception)
+            {
+
+                throw new Exception("Database Error");
+            }
+        }
+
+        public async Task<PaginatedUserStatsDto> GetUserData(int month, int year, int pageSize, int pageNumber)
+        {
+            try
+            {
+                int filterMonth = month;
+                int filterYear = year;
+
+                int skipCount = (pageNumber - 1) * pageSize;
+                var pipeline = new[]
+                                 {
+                                    new BsonDocument
+                                    {
+                                        { "$lookup", new BsonDocument
+                                            {
+                                                { "from", "Leads" },
+                                                { "localField", "_id" },
+                                                { "foreignField", "CreatedById" },
+                                                { "as", "LeadCount" },
+                                                { "pipeline", new BsonArray
+                                                    {
+                                                      new BsonDocument
+                                                       {
+                                                            { "$match", new BsonDocument
+                                                                {
+                                                                    { "Type", 1 },
+                                                                    { "$expr", new BsonDocument
+                                                                        {
+                                                                            { "$and", new BsonArray
+                                                                                {
+                                                                                    new BsonDocument("$eq", new BsonArray { new BsonDocument("$month", "$CreatedAt"), filterMonth }),
+                                                                                    new BsonDocument("$eq", new BsonArray { new BsonDocument("$year", "$CreatedAt"), filterYear })
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    new BsonDocument
+                                    {
+                                        { "$lookup", new BsonDocument
+                                            {
+                                                { "from", "Leads" },
+                                                { "localField", "_id" },
+                                                { "foreignField", "CreatedById" },
+                                                { "as", "ContactCount" },
+                                                { "pipeline", new BsonArray
+                                                    {
+                                                        new BsonDocument
+                                                        {
+                                                            { "$match", new BsonDocument
+                                                                {
+                                                                    { "Type", 2 },
+                                                                    { "$expr", new BsonDocument
+                                                                        {
+                                                                            { "$and", new BsonArray
+                                                                                {
+                                                                                    new BsonDocument("$eq", new BsonArray { new BsonDocument("$month", "$CreatedAt"), filterMonth }),
+                                                                                    new BsonDocument("$eq", new BsonArray { new BsonDocument("$year", "$CreatedAt"), filterYear })
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    new BsonDocument
+                                    {
+                                        { "$lookup", new BsonDocument
+                                            {
+                                                { "from", "Clients" },
+                                                { "localField", "_id" },
+                                                { "foreignField", "CreatedById" },
+                                                { "as", "ClientCount" },
+                                                { "pipeline", new BsonArray
+                                                    {
+                                                        new BsonDocument
+                                                        {
+                                                            { "$match", new BsonDocument
+                                                                {
+                                                                    { "$expr", new BsonDocument
+                                                                        {
+                                                                            { "$and", new BsonArray
+                                                                                {
+                                                                                    new BsonDocument("$eq", new BsonArray { new BsonDocument("$month", "$CreatedAt"), filterMonth }),
+                                                                                    new BsonDocument("$eq", new BsonArray { new BsonDocument("$year", "$CreatedAt"), filterYear })
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    new BsonDocument
+                                        {
+                                            { "$project", new BsonDocument
+                                                {
+                                                    { "_id", 1 },
+                                                    { "name", 1 },
+                                                    { "LeadCount", new BsonDocument("$size", "$LeadCount") },
+                                                    { "ContactCount", new BsonDocument("$size", "$ContactCount") },
+                                                    { "ClientCount", new BsonDocument("$size", "$ClientCount") }
+                                                }
+                                            }
+                                        },
+                                    new BsonDocument("$skip", skipCount),
+                                    new BsonDocument("$limit", pageSize)
+
+                                    };
+                var totalCount = await _dbContext.Users.CountDocumentsAsync(x=> true);
+                var result = await _dbContext.Users.Aggregate<BsonDocument>(pipeline).ToListAsync();
+                var userList = result.Select(b => BsonSerializer.Deserialize<UserStatsDto>(b)).ToList();
+                PaginatedUserStatsDto response = new() { UserList = userList, TotalCount = totalCount };
+                return response;
             }
             catch (Exception)
             {
